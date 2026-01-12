@@ -1,0 +1,27 @@
+{
+	"name": "@meraki/auth",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {},
+	"dependencies": {
+		"@meraki/db": "workspace:*",
+		"@meraki/transactional": "workspace:*",
+		"@meraki/env": "workspace:*",
+		"@better-auth/expo": "catalog:",
+		"better-auth": "catalog:",
+		"dotenv": "catalog:",
+		"resend": "^6.6.0",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@meraki/config": "workspace:*",
+		"typescript": "catalog:"
+	}
+}

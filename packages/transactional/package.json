@@ -1,0 +1,29 @@
+{
+	"name": "@meraki/transactional",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
+		"start": "NODE_ENV=production bun src/index.ts"
+	},
+	"exports": {
+		"./verifyEmail": "./emails/verify-email.tsx",
+		"./resetPassword": "./emails/reset-password.tsx",
+		"./changeEmail": "./emails/change-email.tsx",
+		"./deleteAccount": "./emails/delete-account.tsx"
+	},
+	"dependencies": {
+		"@react-email/components": "1.0.4",
+		"react": "19.2.3",
+		"react-dom": "19.2.3"
+	},
+	"devDependencies": {
+		"@react-email/preview-server": "5.2.1",
+		"@meraki/config": "workspace:*",
+		"@types/bun": "latest",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"react-email": "5.2.1"
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"name": "@meraki/db",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {
+		"db:push": "drizzle-kit push",
+		"db:generate": "drizzle-kit generate",
+		"db:studio": "drizzle-kit studio",
+		"db:migrate": "drizzle-kit migrate",
+		"db:seed": "tsx ./src/seed.ts"
+	},
+	"dependencies": {
+		"@neondatabase/serverless": "^1.0.2",
+		"@meraki/env": "workspace:*",
+		"dotenv": "catalog:",
+		"drizzle-orm": "^0.45.1",
+		"drizzle-seed": "^0.3.1",
+		"drizzle-zod": "^0.8.3",
+		"ws": "^8.18.3",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@meraki/config": "workspace:*",
+		"@types/ws": "^8.18.1",
+		"drizzle-kit": "^0.31.8",
+		"tsx": "^4.21.0",
+		"typescript": "catalog:"
+	}
+}
