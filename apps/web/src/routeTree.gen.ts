@@ -19,9 +19,10 @@ import { Route as signForgotPasswordRouteImport } from './routes/(sign)/forgot-p
 import { Route as publicTosRouteImport } from './routes/(public)/tos'
 import { Route as publicPrivacyRouteImport } from './routes/(public)/privacy'
 import { Route as publicGoodbyeRouteImport } from './routes/(public)/goodbye'
-import { Route as authenicatedDashboardRouteImport } from './routes/(authenicated)/dashboard'
 import { Route as authenicatedOnboardingRouteRouteImport } from './routes/(authenicated)/onboarding/route'
+import { Route as authenicatedSlugRouteRouteImport } from './routes/(authenicated)/$slug/route'
 import { Route as authenicatedOnboardingCompleteRouteImport } from './routes/(authenicated)/onboarding/complete'
+import { Route as authenicatedSlugDashboardRouteImport } from './routes/(authenicated)/$slug/dashboard'
 import { Route as authenicatedSettingsAccountProfileIndexRouteImport } from './routes/(authenicated)/settings/account/profile/index'
 import { Route as authenicatedSettingsAccountPreferencesIndexRouteImport } from './routes/(authenicated)/settings/account/preferences/index'
 
@@ -73,22 +74,28 @@ const publicGoodbyeRoute = publicGoodbyeRouteImport.update({
   path: '/goodbye',
   getParentRoute: () => rootRouteImport,
 } as any)
-const authenicatedDashboardRoute = authenicatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => authenicatedRouteRoute,
-} as any)
 const authenicatedOnboardingRouteRoute =
   authenicatedOnboardingRouteRouteImport.update({
     id: '/onboarding',
     path: '/onboarding',
     getParentRoute: () => authenicatedRouteRoute,
   } as any)
+const authenicatedSlugRouteRoute = authenicatedSlugRouteRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => authenicatedRouteRoute,
+} as any)
 const authenicatedOnboardingCompleteRoute =
   authenicatedOnboardingCompleteRouteImport.update({
     id: '/complete',
     path: '/complete',
     getParentRoute: () => authenicatedOnboardingRouteRoute,
+  } as any)
+const authenicatedSlugDashboardRoute =
+  authenicatedSlugDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
 const authenicatedSettingsAccountProfileIndexRoute =
   authenicatedSettingsAccountProfileIndexRouteImport.update({
@@ -104,8 +111,8 @@ const authenicatedSettingsAccountPreferencesIndexRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/$slug': typeof authenicatedSlugRouteRouteWithChildren
   '/onboarding': typeof authenicatedOnboardingRouteRouteWithChildren
-  '/dashboard': typeof authenicatedDashboardRoute
   '/goodbye': typeof publicGoodbyeRoute
   '/privacy': typeof publicPrivacyRoute
   '/tos': typeof publicTosRoute
@@ -114,13 +121,14 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof signSignInRoute
   '/sign-up': typeof signSignUpRoute
   '/': typeof publicIndexRoute
+  '/$slug/dashboard': typeof authenicatedSlugDashboardRoute
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/settings/account/preferences': typeof authenicatedSettingsAccountPreferencesIndexRoute
   '/settings/account/profile': typeof authenicatedSettingsAccountProfileIndexRoute
 }
 export interface FileRoutesByTo {
+  '/$slug': typeof authenicatedSlugRouteRouteWithChildren
   '/onboarding': typeof authenicatedOnboardingRouteRouteWithChildren
-  '/dashboard': typeof authenicatedDashboardRoute
   '/goodbye': typeof publicGoodbyeRoute
   '/privacy': typeof publicPrivacyRoute
   '/tos': typeof publicTosRoute
@@ -129,6 +137,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof signSignInRoute
   '/sign-up': typeof signSignUpRoute
   '/': typeof publicIndexRoute
+  '/$slug/dashboard': typeof authenicatedSlugDashboardRoute
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/settings/account/preferences': typeof authenicatedSettingsAccountPreferencesIndexRoute
   '/settings/account/profile': typeof authenicatedSettingsAccountProfileIndexRoute
@@ -137,8 +146,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(authenicated)': typeof authenicatedRouteRouteWithChildren
   '/(sign)': typeof signRouteRouteWithChildren
+  '/(authenicated)/$slug': typeof authenicatedSlugRouteRouteWithChildren
   '/(authenicated)/onboarding': typeof authenicatedOnboardingRouteRouteWithChildren
-  '/(authenicated)/dashboard': typeof authenicatedDashboardRoute
   '/(public)/goodbye': typeof publicGoodbyeRoute
   '/(public)/privacy': typeof publicPrivacyRoute
   '/(public)/tos': typeof publicTosRoute
@@ -147,6 +156,7 @@ export interface FileRoutesById {
   '/(sign)/sign-in': typeof signSignInRoute
   '/(sign)/sign-up': typeof signSignUpRoute
   '/(public)/': typeof publicIndexRoute
+  '/(authenicated)/$slug/dashboard': typeof authenicatedSlugDashboardRoute
   '/(authenicated)/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/(authenicated)/settings/account/preferences/': typeof authenicatedSettingsAccountPreferencesIndexRoute
   '/(authenicated)/settings/account/profile/': typeof authenicatedSettingsAccountProfileIndexRoute
@@ -154,8 +164,8 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/$slug'
     | '/onboarding'
-    | '/dashboard'
     | '/goodbye'
     | '/privacy'
     | '/tos'
@@ -164,13 +174,14 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/'
+    | '/$slug/dashboard'
     | '/onboarding/complete'
     | '/settings/account/preferences'
     | '/settings/account/profile'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/$slug'
     | '/onboarding'
-    | '/dashboard'
     | '/goodbye'
     | '/privacy'
     | '/tos'
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/'
+    | '/$slug/dashboard'
     | '/onboarding/complete'
     | '/settings/account/preferences'
     | '/settings/account/profile'
@@ -186,8 +198,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/(authenicated)'
     | '/(sign)'
+    | '/(authenicated)/$slug'
     | '/(authenicated)/onboarding'
-    | '/(authenicated)/dashboard'
     | '/(public)/goodbye'
     | '/(public)/privacy'
     | '/(public)/tos'
@@ -196,6 +208,7 @@ export interface FileRouteTypes {
     | '/(sign)/sign-in'
     | '/(sign)/sign-up'
     | '/(public)/'
+    | '/(authenicated)/$slug/dashboard'
     | '/(authenicated)/onboarding/complete'
     | '/(authenicated)/settings/account/preferences/'
     | '/(authenicated)/settings/account/profile/'
@@ -282,18 +295,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicGoodbyeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(authenicated)/dashboard': {
-      id: '/(authenicated)/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof authenicatedDashboardRouteImport
-      parentRoute: typeof authenicatedRouteRoute
-    }
     '/(authenicated)/onboarding': {
       id: '/(authenicated)/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof authenicatedOnboardingRouteRouteImport
+      parentRoute: typeof authenicatedRouteRoute
+    }
+    '/(authenicated)/$slug': {
+      id: '/(authenicated)/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof authenicatedSlugRouteRouteImport
       parentRoute: typeof authenicatedRouteRoute
     }
     '/(authenicated)/onboarding/complete': {
@@ -302,6 +315,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/onboarding/complete'
       preLoaderRoute: typeof authenicatedOnboardingCompleteRouteImport
       parentRoute: typeof authenicatedOnboardingRouteRoute
+    }
+    '/(authenicated)/$slug/dashboard': {
+      id: '/(authenicated)/$slug/dashboard'
+      path: '/dashboard'
+      fullPath: '/$slug/dashboard'
+      preLoaderRoute: typeof authenicatedSlugDashboardRouteImport
+      parentRoute: typeof authenicatedSlugRouteRoute
     }
     '/(authenicated)/settings/account/profile/': {
       id: '/(authenicated)/settings/account/profile/'
@@ -320,6 +340,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface authenicatedSlugRouteRouteChildren {
+  authenicatedSlugDashboardRoute: typeof authenicatedSlugDashboardRoute
+}
+
+const authenicatedSlugRouteRouteChildren: authenicatedSlugRouteRouteChildren = {
+  authenicatedSlugDashboardRoute: authenicatedSlugDashboardRoute,
+}
+
+const authenicatedSlugRouteRouteWithChildren =
+  authenicatedSlugRouteRoute._addFileChildren(
+    authenicatedSlugRouteRouteChildren,
+  )
+
 interface authenicatedOnboardingRouteRouteChildren {
   authenicatedOnboardingCompleteRoute: typeof authenicatedOnboardingCompleteRoute
 }
@@ -335,16 +368,16 @@ const authenicatedOnboardingRouteRouteWithChildren =
   )
 
 interface authenicatedRouteRouteChildren {
+  authenicatedSlugRouteRoute: typeof authenicatedSlugRouteRouteWithChildren
   authenicatedOnboardingRouteRoute: typeof authenicatedOnboardingRouteRouteWithChildren
-  authenicatedDashboardRoute: typeof authenicatedDashboardRoute
   authenicatedSettingsAccountPreferencesIndexRoute: typeof authenicatedSettingsAccountPreferencesIndexRoute
   authenicatedSettingsAccountProfileIndexRoute: typeof authenicatedSettingsAccountProfileIndexRoute
 }
 
 const authenicatedRouteRouteChildren: authenicatedRouteRouteChildren = {
+  authenicatedSlugRouteRoute: authenicatedSlugRouteRouteWithChildren,
   authenicatedOnboardingRouteRoute:
     authenicatedOnboardingRouteRouteWithChildren,
-  authenicatedDashboardRoute: authenicatedDashboardRoute,
   authenicatedSettingsAccountPreferencesIndexRoute:
     authenicatedSettingsAccountPreferencesIndexRoute,
   authenicatedSettingsAccountProfileIndexRoute:

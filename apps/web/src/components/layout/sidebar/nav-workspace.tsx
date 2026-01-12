@@ -1,6 +1,13 @@
-import { IconCheck, IconChevronDown, IconLogout, IconPlus } from "@tabler/icons-react";
+import {
+	IconCheck,
+	IconChevronDown,
+	IconLogout,
+	IconPlus,
+} from "@tabler/icons-react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,48 +22,46 @@ import {
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
-import { queryClient } from "@/utils/orpc";
 import { useModal } from "@/stores/modal.store";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { queryClient } from "@/utils/orpc";
 
 export function NavWorkspace({
-	activeOrganizationId,
+	activeWorkspaceId,
 }: {
-	activeOrganizationId?: string;
+	activeWorkspaceId?: string;
 }) {
 	const navigate = useNavigate();
-	const {open}=useModal()
+	const { open } = useModal();
 	const { data: workspaces, isPending: isWorkspacesPending } =
 		authClient.useListOrganizations();
-	const currentWorkspace = workspaces?.find(
-		(w) => w.id === activeOrganizationId,
-	);
+	const currentWorkspace = workspaces?.find((w) => w.id === activeWorkspaceId);
 
-	const handleSwitchWorkspace = async (organizationId: string) => {
-		const org = workspaces?.find((w) => w.id === organizationId);
-		if (!org) return;
+	const handleSwitchWorkspace = async (workspaceId: string) => {
+		const workspace = workspaces?.find((w) => w.id === workspaceId);
+		if (!workspace) return;
 
 		await authClient.organization.setActive({
-			organizationId,
+			organizationId: workspaceId,
 		});
 		queryClient.invalidateQueries();
 		navigate({
-      to:"/dashboard"
+			to: "/$slug/dashboard",
+			params: { slug: workspace.slug as string },
 		});
 	};
 
 	const handleLeave = async () => {
-		if (!activeOrganizationId) return;
+		if (!activeWorkspaceId) return;
 		try {
 			const { error } = await authClient.organization.leave({
-				organizationId: activeOrganizationId,
+				organizationId: activeWorkspaceId,
 			});
 			if (error) throw error;
 			toast.success("Left organization successfully");
 			navigate({ to: "/" });
 		} catch (error) {
-			const message = error instanceof Error ? error.message : "Failed to leave organization";
+			const message =
+				error instanceof Error ? error.message : "Failed to leave organization";
 			toast.error(message);
 		}
 	};
@@ -64,7 +69,6 @@ export function NavWorkspace({
 	if (isWorkspacesPending) {
 		return <Skeleton className="h-12 w-full" />;
 	}
-
 
 	return (
 		<DropdownMenu>
@@ -74,16 +78,15 @@ export function NavWorkspace({
 					className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					render={<div />}
 				>
-							<Avatar>
-								<AvatarImage
-								src={currentWorkspace?.logo??""}
-								alt={currentWorkspace?.name}
-
-							/>
-<AvatarFallback>
-								{currentWorkspace?.name?.charAt(0) ?? "W"}
-							</AvatarFallback>							
-							</Avatar>
+					<Avatar>
+						<AvatarImage
+							src={currentWorkspace?.logo ?? ""}
+							alt={currentWorkspace?.name ?? ""}
+						/>
+						<AvatarFallback>
+							{currentWorkspace?.name?.charAt(0) ?? "W"}
+						</AvatarFallback>
+					</Avatar>
 					<div className="grid flex-1 text-left text-sm leading-tight">
 						<span className="truncate font-semibold">
 							{currentWorkspace?.name ?? "Workspace"}
@@ -101,26 +104,9 @@ export function NavWorkspace({
 				side={"bottom"}
 				sideOffset={4}
 			>
-				<DropdownMenuItem className="gap-2 p-2 font-medium">
-					<div className="flex size-6 items-center justify-center rounded-sm border">
-						{currentWorkspace?.logo ? (
-							<img
-								src={currentWorkspace.logo}
-								alt={currentWorkspace.name}
-								className="size-4"
-							/>
-						) : (
-							<span className="font-bold">
-								{currentWorkspace?.name?.charAt(0) ?? "W"}
-							</span>
-						)}
-					</div>
-					{currentWorkspace?.name ?? "Workspace"}
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuSub>
-						<DropdownMenuSubTrigger >
+						<DropdownMenuSubTrigger>
 							<IconPlus className="size-4" />
 							Switch workspace
 						</DropdownMenuSubTrigger>
@@ -132,12 +118,9 @@ export function NavWorkspace({
 									className="gap-2"
 								>
 									<Avatar>
-										<AvatarImage
-											src={org.logo??""}
-											alt={org.name}
-										/>
+										<AvatarImage src={org.logo ?? ""} alt={org.name ?? ""} />
 										<AvatarFallback>
-											{org.name.charAt(0)}
+											{org.name?.charAt(0) ?? "W"}
 										</AvatarFallback>
 									</Avatar>
 									{org.name}
@@ -148,9 +131,11 @@ export function NavWorkspace({
 							))}
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
-							onClick={()=>open({
-								type:"NEW_WORKSPACE"
-							})}
+								onClick={() =>
+									open({
+										type: "NEW_WORKSPACE",
+									})
+								}
 							>
 								<div className="flex size-6 items-center justify-center rounded-md border bg-background">
 									<IconPlus className="size-4" />

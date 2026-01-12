@@ -147,7 +147,6 @@ export const invitation = pgTable("invitation", {
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-
 export const organizationRelations = relations(organization, ({ many }) => ({
 	members: many(member),
 	invitations: many(invitation),

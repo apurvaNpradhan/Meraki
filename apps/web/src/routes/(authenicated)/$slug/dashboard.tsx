@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import AppLayout from "@/components/layout/app-layout";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export const Route = createFileRoute("/(authenicated)/dashboard")({
+export const Route = createFileRoute("/(authenicated)/$slug/dashboard")({
 	component: RouteComponent,
 });
 

@@ -1,7 +1,6 @@
 import { expo } from "@better-auth/expo";
-import * as authRepo from "@meraki/db/repository/auth";
-
 import { db } from "@meraki/db";
+import * as authRepo from "@meraki/db/repository/auth";
 import * as schema from "@meraki/db/schema/auth";
 import { env } from "@meraki/env/server";
 import ChangeEmail from "@meraki/transactional/changeEmail";
@@ -13,6 +12,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { customSession, organization } from "better-auth/plugins";
 import { Resend } from "resend";
 import { admin, member, owner } from "./permissions";
+
 const resend = new Resend(env.RESEND_API_KEY as string);
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -76,7 +76,7 @@ export const auth = betterAuth({
 		session: {
 			create: {
 				before: async (session) => {
-					const member=await authRepo.getMember(session.userId)
+					const member = await authRepo.getMember(session.userId);
 					return {
 						data: {
 							...session,
@@ -150,7 +150,7 @@ export const auth = betterAuth({
 			roles: {
 				owner,
 				admin,
-				member
+				member,
 			},
 		}),
 
@@ -172,7 +172,6 @@ export const auth = betterAuth({
 					...session,
 					activeOrganizationId,
 				},
-				
 			};
 		}),
 	],

@@ -3,9 +3,9 @@ import { ForgotPasswordModal } from "@/features/auth/components/forgot-password-
 import { ChangeEmailModal } from "@/features/settings/components/change-email-modal";
 import { DeleteAccountModal } from "@/features/settings/components/delete-account-modal";
 import { UpdatePasswordModal } from "@/features/settings/components/update-password-modal";
+import NewWorkspaceModal from "@/features/workspaces/components/new-workspace";
 import { type ModalType, useModal } from "@/stores/modal.store";
 import Modal from "./ui/modal";
-import newOrganization from "@/features/organization./components/new-organization";
 
 export function ModalProvider() {
 	const modal = useModal();
@@ -14,7 +14,7 @@ export function ModalProvider() {
 		DELETE_ACCOUNT: DeleteAccountModal,
 		UPDATE_EMAIL: ChangeEmailModal,
 		FORGOT_PASSWORD: ForgotPasswordModal,
-		NEW_WORKSPACE:newOrganization
+		NEW_WORKSPACE: NewWorkspaceModal,
 	};
 	if (modal.stack.length === 0) return null;
 

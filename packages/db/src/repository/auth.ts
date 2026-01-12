@@ -7,10 +7,10 @@ export const getMember = async (userId: string) => {
 		where: eq(member.userId, userId),
 		with: {
 			organization: {
-        columns: {
-          id: true,
-        },
-      },
+				columns: {
+					id: true,
+				},
+			},
 		},
 	});
 	return result;

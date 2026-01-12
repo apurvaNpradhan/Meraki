@@ -1,5 +1,5 @@
-import { neon, neonConfig } from "@neondatabase/serverless";
 import { env } from "@meraki/env/server";
+import { neon, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import ws from "ws";
 import * as schema from "./schema";
