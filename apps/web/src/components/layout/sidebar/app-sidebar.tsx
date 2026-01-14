@@ -1,21 +1,19 @@
-import { IconDashboard } from "@tabler/icons-react";
+import { IconLayoutKanban } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import type React from "react";
 import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
-	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouteActive } from "@/hooks/use-active-route";
-import { authClient, sessionQueryOptions } from "@/lib/auth-client";
-import { NavUser } from "./nav-user";
+import { sessionQueryOptions } from "@/lib/auth-client";
+
 import { NavWorkspace } from "./nav-workspace";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -25,16 +23,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 	const isActive = useRouteActive();
 	const navigate = useNavigate();
-
+	console.log(
+		isActive(`${data?.data?.session?.activeOrganization?.slug}/dashboard`),
+	);
 	return (
 		<Sidebar collapsible="icon" {...props} variant="inset">
 			<SidebarHeader className="p-0">
 				{isPending ? (
 					<Skeleton className="h-12 w-full" />
 				) : (
-					data?.data?.session?.activeOrganizationId && (
+					data?.data?.session?.activeOrganization && (
 						<NavWorkspace
-							activeWorkspaceId={data?.data?.session?.activeOrganizationId}
+							activeWorkspaceId={data?.data?.session?.activeOrganization.id}
 						/>
 					)
 				)}
@@ -44,25 +44,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<SidebarGroupContent className="flex flex-col gap-1">
 						<SidebarMenuButton
 							size={"sm"}
-							isActive={isActive("/dashboard")}
-							onClick={() => navigate({ to: "/dashboard" })}
+							isActive={isActive(
+								`${data?.data?.session?.activeOrganization?.slug}/dashboard`,
+							)}
+							onClick={() =>
+								navigate({
+									to: "/$slug/dashboard",
+									params: {
+										slug: data?.data?.session?.activeOrganization?.slug ?? "",
+									},
+								})
+							}
 						>
-							<IconDashboard />
+							<IconLayoutKanban />
 							Dashboard
 						</SidebarMenuButton>
 					</SidebarGroupContent>
 				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupLabel>Workspace</SidebarGroupLabel>
-				</SidebarGroup>
 			</SidebarContent>
-			<SidebarFooter className="flex items-center">
-				{!data?.data?.user ? (
-					<Skeleton className="h-12 w-full" />
-				) : (
-					<NavUser user={data?.data?.user} />
-				)}
-			</SidebarFooter>
 		</Sidebar>
 	);
 }

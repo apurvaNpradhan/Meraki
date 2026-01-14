@@ -21,10 +21,14 @@ import { Route as publicPrivacyRouteImport } from './routes/(public)/privacy'
 import { Route as publicGoodbyeRouteImport } from './routes/(public)/goodbye'
 import { Route as authenicatedOnboardingRouteRouteImport } from './routes/(authenicated)/onboarding/route'
 import { Route as authenicatedSlugRouteRouteImport } from './routes/(authenicated)/$slug/route'
+import { Route as authenicatedOnboardingIndexRouteImport } from './routes/(authenicated)/onboarding/index'
+import { Route as authenicatedOnboardingWorkspaceRouteImport } from './routes/(authenicated)/onboarding/workspace'
 import { Route as authenicatedOnboardingCompleteRouteImport } from './routes/(authenicated)/onboarding/complete'
 import { Route as authenicatedSlugDashboardRouteImport } from './routes/(authenicated)/$slug/dashboard'
-import { Route as authenicatedSettingsAccountProfileIndexRouteImport } from './routes/(authenicated)/settings/account/profile/index'
-import { Route as authenicatedSettingsAccountPreferencesIndexRouteImport } from './routes/(authenicated)/settings/account/preferences/index'
+import { Route as authenicatedSlugSettingsWorkspacePeopleRouteImport } from './routes/(authenicated)/$slug/settings/workspace/people'
+import { Route as authenicatedSlugSettingsWorkspaceGeneralRouteImport } from './routes/(authenicated)/$slug/settings/workspace/general'
+import { Route as authenicatedSlugSettingsAccountProfileIndexRouteImport } from './routes/(authenicated)/$slug/settings/account/profile/index'
+import { Route as authenicatedSlugSettingsAccountPreferencesIndexRouteImport } from './routes/(authenicated)/$slug/settings/account/preferences/index'
 
 const signRouteRoute = signRouteRouteImport.update({
   id: '/(sign)',
@@ -85,6 +89,18 @@ const authenicatedSlugRouteRoute = authenicatedSlugRouteRouteImport.update({
   path: '/$slug',
   getParentRoute: () => authenicatedRouteRoute,
 } as any)
+const authenicatedOnboardingIndexRoute =
+  authenicatedOnboardingIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => authenicatedOnboardingRouteRoute,
+  } as any)
+const authenicatedOnboardingWorkspaceRoute =
+  authenicatedOnboardingWorkspaceRouteImport.update({
+    id: '/workspace',
+    path: '/workspace',
+    getParentRoute: () => authenicatedOnboardingRouteRoute,
+  } as any)
 const authenicatedOnboardingCompleteRoute =
   authenicatedOnboardingCompleteRouteImport.update({
     id: '/complete',
@@ -97,17 +113,29 @@ const authenicatedSlugDashboardRoute =
     path: '/dashboard',
     getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
-const authenicatedSettingsAccountProfileIndexRoute =
-  authenicatedSettingsAccountProfileIndexRouteImport.update({
+const authenicatedSlugSettingsWorkspacePeopleRoute =
+  authenicatedSlugSettingsWorkspacePeopleRouteImport.update({
+    id: '/settings/workspace/people',
+    path: '/settings/workspace/people',
+    getParentRoute: () => authenicatedSlugRouteRoute,
+  } as any)
+const authenicatedSlugSettingsWorkspaceGeneralRoute =
+  authenicatedSlugSettingsWorkspaceGeneralRouteImport.update({
+    id: '/settings/workspace/general',
+    path: '/settings/workspace/general',
+    getParentRoute: () => authenicatedSlugRouteRoute,
+  } as any)
+const authenicatedSlugSettingsAccountProfileIndexRoute =
+  authenicatedSlugSettingsAccountProfileIndexRouteImport.update({
     id: '/settings/account/profile/',
     path: '/settings/account/profile/',
-    getParentRoute: () => authenicatedRouteRoute,
+    getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
-const authenicatedSettingsAccountPreferencesIndexRoute =
-  authenicatedSettingsAccountPreferencesIndexRouteImport.update({
+const authenicatedSlugSettingsAccountPreferencesIndexRoute =
+  authenicatedSlugSettingsAccountPreferencesIndexRouteImport.update({
     id: '/settings/account/preferences/',
     path: '/settings/account/preferences/',
-    getParentRoute: () => authenicatedRouteRoute,
+    getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -123,12 +151,15 @@ export interface FileRoutesByFullPath {
   '/': typeof publicIndexRoute
   '/$slug/dashboard': typeof authenicatedSlugDashboardRoute
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
-  '/settings/account/preferences': typeof authenicatedSettingsAccountPreferencesIndexRoute
-  '/settings/account/profile': typeof authenicatedSettingsAccountProfileIndexRoute
+  '/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
+  '/onboarding/': typeof authenicatedOnboardingIndexRoute
+  '/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
+  '/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  '/$slug/settings/account/preferences': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
+  '/$slug/settings/account/profile': typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/$slug': typeof authenicatedSlugRouteRouteWithChildren
-  '/onboarding': typeof authenicatedOnboardingRouteRouteWithChildren
   '/goodbye': typeof publicGoodbyeRoute
   '/privacy': typeof publicPrivacyRoute
   '/tos': typeof publicTosRoute
@@ -139,8 +170,12 @@ export interface FileRoutesByTo {
   '/': typeof publicIndexRoute
   '/$slug/dashboard': typeof authenicatedSlugDashboardRoute
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
-  '/settings/account/preferences': typeof authenicatedSettingsAccountPreferencesIndexRoute
-  '/settings/account/profile': typeof authenicatedSettingsAccountProfileIndexRoute
+  '/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
+  '/onboarding': typeof authenicatedOnboardingIndexRoute
+  '/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
+  '/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  '/$slug/settings/account/preferences': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
+  '/$slug/settings/account/profile': typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -158,8 +193,12 @@ export interface FileRoutesById {
   '/(public)/': typeof publicIndexRoute
   '/(authenicated)/$slug/dashboard': typeof authenicatedSlugDashboardRoute
   '/(authenicated)/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
-  '/(authenicated)/settings/account/preferences/': typeof authenicatedSettingsAccountPreferencesIndexRoute
-  '/(authenicated)/settings/account/profile/': typeof authenicatedSettingsAccountProfileIndexRoute
+  '/(authenicated)/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
+  '/(authenicated)/onboarding/': typeof authenicatedOnboardingIndexRoute
+  '/(authenicated)/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
+  '/(authenicated)/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  '/(authenicated)/$slug/settings/account/preferences/': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
+  '/(authenicated)/$slug/settings/account/profile/': typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -176,12 +215,15 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug/dashboard'
     | '/onboarding/complete'
-    | '/settings/account/preferences'
-    | '/settings/account/profile'
+    | '/onboarding/workspace'
+    | '/onboarding/'
+    | '/$slug/settings/workspace/general'
+    | '/$slug/settings/workspace/people'
+    | '/$slug/settings/account/preferences'
+    | '/$slug/settings/account/profile'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/$slug'
-    | '/onboarding'
     | '/goodbye'
     | '/privacy'
     | '/tos'
@@ -192,8 +234,12 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug/dashboard'
     | '/onboarding/complete'
-    | '/settings/account/preferences'
-    | '/settings/account/profile'
+    | '/onboarding/workspace'
+    | '/onboarding'
+    | '/$slug/settings/workspace/general'
+    | '/$slug/settings/workspace/people'
+    | '/$slug/settings/account/preferences'
+    | '/$slug/settings/account/profile'
   id:
     | '__root__'
     | '/(authenicated)'
@@ -210,8 +256,12 @@ export interface FileRouteTypes {
     | '/(public)/'
     | '/(authenicated)/$slug/dashboard'
     | '/(authenicated)/onboarding/complete'
-    | '/(authenicated)/settings/account/preferences/'
-    | '/(authenicated)/settings/account/profile/'
+    | '/(authenicated)/onboarding/workspace'
+    | '/(authenicated)/onboarding/'
+    | '/(authenicated)/$slug/settings/workspace/general'
+    | '/(authenicated)/$slug/settings/workspace/people'
+    | '/(authenicated)/$slug/settings/account/preferences/'
+    | '/(authenicated)/$slug/settings/account/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -309,6 +359,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenicatedSlugRouteRouteImport
       parentRoute: typeof authenicatedRouteRoute
     }
+    '/(authenicated)/onboarding/': {
+      id: '/(authenicated)/onboarding/'
+      path: '/'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof authenicatedOnboardingIndexRouteImport
+      parentRoute: typeof authenicatedOnboardingRouteRoute
+    }
+    '/(authenicated)/onboarding/workspace': {
+      id: '/(authenicated)/onboarding/workspace'
+      path: '/workspace'
+      fullPath: '/onboarding/workspace'
+      preLoaderRoute: typeof authenicatedOnboardingWorkspaceRouteImport
+      parentRoute: typeof authenicatedOnboardingRouteRoute
+    }
     '/(authenicated)/onboarding/complete': {
       id: '/(authenicated)/onboarding/complete'
       path: '/complete'
@@ -323,29 +387,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenicatedSlugDashboardRouteImport
       parentRoute: typeof authenicatedSlugRouteRoute
     }
-    '/(authenicated)/settings/account/profile/': {
-      id: '/(authenicated)/settings/account/profile/'
-      path: '/settings/account/profile'
-      fullPath: '/settings/account/profile'
-      preLoaderRoute: typeof authenicatedSettingsAccountProfileIndexRouteImport
-      parentRoute: typeof authenicatedRouteRoute
+    '/(authenicated)/$slug/settings/workspace/people': {
+      id: '/(authenicated)/$slug/settings/workspace/people'
+      path: '/settings/workspace/people'
+      fullPath: '/$slug/settings/workspace/people'
+      preLoaderRoute: typeof authenicatedSlugSettingsWorkspacePeopleRouteImport
+      parentRoute: typeof authenicatedSlugRouteRoute
     }
-    '/(authenicated)/settings/account/preferences/': {
-      id: '/(authenicated)/settings/account/preferences/'
+    '/(authenicated)/$slug/settings/workspace/general': {
+      id: '/(authenicated)/$slug/settings/workspace/general'
+      path: '/settings/workspace/general'
+      fullPath: '/$slug/settings/workspace/general'
+      preLoaderRoute: typeof authenicatedSlugSettingsWorkspaceGeneralRouteImport
+      parentRoute: typeof authenicatedSlugRouteRoute
+    }
+    '/(authenicated)/$slug/settings/account/profile/': {
+      id: '/(authenicated)/$slug/settings/account/profile/'
+      path: '/settings/account/profile'
+      fullPath: '/$slug/settings/account/profile'
+      preLoaderRoute: typeof authenicatedSlugSettingsAccountProfileIndexRouteImport
+      parentRoute: typeof authenicatedSlugRouteRoute
+    }
+    '/(authenicated)/$slug/settings/account/preferences/': {
+      id: '/(authenicated)/$slug/settings/account/preferences/'
       path: '/settings/account/preferences'
-      fullPath: '/settings/account/preferences'
-      preLoaderRoute: typeof authenicatedSettingsAccountPreferencesIndexRouteImport
-      parentRoute: typeof authenicatedRouteRoute
+      fullPath: '/$slug/settings/account/preferences'
+      preLoaderRoute: typeof authenicatedSlugSettingsAccountPreferencesIndexRouteImport
+      parentRoute: typeof authenicatedSlugRouteRoute
     }
   }
 }
 
 interface authenicatedSlugRouteRouteChildren {
   authenicatedSlugDashboardRoute: typeof authenicatedSlugDashboardRoute
+  authenicatedSlugSettingsWorkspaceGeneralRoute: typeof authenicatedSlugSettingsWorkspaceGeneralRoute
+  authenicatedSlugSettingsWorkspacePeopleRoute: typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  authenicatedSlugSettingsAccountPreferencesIndexRoute: typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
+  authenicatedSlugSettingsAccountProfileIndexRoute: typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
 
 const authenicatedSlugRouteRouteChildren: authenicatedSlugRouteRouteChildren = {
   authenicatedSlugDashboardRoute: authenicatedSlugDashboardRoute,
+  authenicatedSlugSettingsWorkspaceGeneralRoute:
+    authenicatedSlugSettingsWorkspaceGeneralRoute,
+  authenicatedSlugSettingsWorkspacePeopleRoute:
+    authenicatedSlugSettingsWorkspacePeopleRoute,
+  authenicatedSlugSettingsAccountPreferencesIndexRoute:
+    authenicatedSlugSettingsAccountPreferencesIndexRoute,
+  authenicatedSlugSettingsAccountProfileIndexRoute:
+    authenicatedSlugSettingsAccountProfileIndexRoute,
 }
 
 const authenicatedSlugRouteRouteWithChildren =
@@ -355,11 +445,15 @@ const authenicatedSlugRouteRouteWithChildren =
 
 interface authenicatedOnboardingRouteRouteChildren {
   authenicatedOnboardingCompleteRoute: typeof authenicatedOnboardingCompleteRoute
+  authenicatedOnboardingWorkspaceRoute: typeof authenicatedOnboardingWorkspaceRoute
+  authenicatedOnboardingIndexRoute: typeof authenicatedOnboardingIndexRoute
 }
 
 const authenicatedOnboardingRouteRouteChildren: authenicatedOnboardingRouteRouteChildren =
   {
     authenicatedOnboardingCompleteRoute: authenicatedOnboardingCompleteRoute,
+    authenicatedOnboardingWorkspaceRoute: authenicatedOnboardingWorkspaceRoute,
+    authenicatedOnboardingIndexRoute: authenicatedOnboardingIndexRoute,
   }
 
 const authenicatedOnboardingRouteRouteWithChildren =
@@ -370,18 +464,12 @@ const authenicatedOnboardingRouteRouteWithChildren =
 interface authenicatedRouteRouteChildren {
   authenicatedSlugRouteRoute: typeof authenicatedSlugRouteRouteWithChildren
   authenicatedOnboardingRouteRoute: typeof authenicatedOnboardingRouteRouteWithChildren
-  authenicatedSettingsAccountPreferencesIndexRoute: typeof authenicatedSettingsAccountPreferencesIndexRoute
-  authenicatedSettingsAccountProfileIndexRoute: typeof authenicatedSettingsAccountProfileIndexRoute
 }
 
 const authenicatedRouteRouteChildren: authenicatedRouteRouteChildren = {
   authenicatedSlugRouteRoute: authenicatedSlugRouteRouteWithChildren,
   authenicatedOnboardingRouteRoute:
     authenicatedOnboardingRouteRouteWithChildren,
-  authenicatedSettingsAccountPreferencesIndexRoute:
-    authenicatedSettingsAccountPreferencesIndexRoute,
-  authenicatedSettingsAccountProfileIndexRoute:
-    authenicatedSettingsAccountProfileIndexRoute,
 }
 
 const authenicatedRouteRouteWithChildren =

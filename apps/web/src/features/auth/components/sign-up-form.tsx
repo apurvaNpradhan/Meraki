@@ -86,7 +86,7 @@ export default function SignUpForm({
 					throw error;
 				}
 
-				navigate({ to: "/dashboard" });
+				navigate({ to: "/onboarding/workspace" });
 				return resData;
 			})(),
 			{

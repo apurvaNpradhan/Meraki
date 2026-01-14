@@ -1,17 +1,44 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { sessionQueryOptions } from "@/lib/auth-client";
+import { sessionQueryOptions, workspacesQueryOptions } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/(authenicated)/onboarding")({
 	component: RouteComponent,
 	beforeLoad: async ({ context, location }) => {
-		const session =
-			await context.queryClient.ensureQueryData(sessionQueryOptions);
-		if (session.data?.user.onboardingCompleted) {
-			redirect({
-				to: "/dashboard",
-				throw: true,
+		const { queryClient } = context;
+
+		const [workspacesResponse, sessionResponse] = await Promise.all([
+			queryClient.ensureQueryData(workspacesQueryOptions),
+			queryClient.ensureQueryData(sessionQueryOptions),
+		]);
+
+		const workspaces = workspacesResponse.data;
+		const session = sessionResponse.data;
+
+		if (!session) {
+			throw redirect({ to: "/" });
+		}
+
+		const targetWorkspace = workspaces?.find(
+			(w) => w.slug === session.session.activeOrganization?.slug,
+		);
+		if (!targetWorkspace) {
+			if (
+				location.pathname === "/onboarding/workspace" ||
+				location.pathname === "/onboarding/complete"
+			) {
+				return;
+			}
+			throw redirect({
+				to: "/onboarding/workspace",
 			});
 		}
+		throw redirect({
+			to: "/$slug/dashboard",
+			params: {
+				slug: session.session.activeOrganization?.slug ?? "",
+			},
+			throw: true,
+		});
 	},
 });
 

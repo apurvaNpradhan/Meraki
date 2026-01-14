@@ -1,87 +1,89 @@
-import { IconCheck, IconLoader2 } from "@tabler/icons-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useOnboardingStore } from "@/features/onboarding/onboarding.store";
-import { authClient, sessionQueryOptions } from "@/lib/auth-client";
+import {
+	authClient,
+	sessionQueryOptions,
+	workspacesQueryOptions,
+} from "@/lib/auth-client";
 
 export const Route = createFileRoute("/(authenicated)/onboarding/complete")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
+	const { queryClient } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
-	const temp = useOnboardingStore((state) => state.temp) ?? "TEMP";
-	const form = useForm();
-
+	const orgName = useOnboardingStore((state) => state.name);
+	const orgSlug = useOnboardingStore((state) => state.slug);
+	const form = useForm({});
 	const onSubmit = async () => {
-		if (!temp) return;
+		if (!orgName || !orgSlug) {
+			navigate({ to: "/onboarding/workspace" });
+			return;
+		}
+		const { data, error } = await authClient.organization.create({
+			name: orgName,
+			slug: orgSlug,
+		});
 
-		toast.promise(
-			(async () => {
-				const { error } = await authClient.updateUser({
-					onboardingCompleted: new Date(),
-				});
+		if (error) {
+			toast.error(error.message);
+			return;
+		}
+		await Promise.all([
+			await authClient.updateUser({
+				onboardingCompleted: new Date(),
+			}),
 
-				if (error) throw error;
-				queryClient.refetchQueries(sessionQueryOptions);
-				navigate({ to: "/dashboard", replace: true });
-			})(),
-			{
-				loading: "Completing onboarding...",
-				success: "Onboarding completed successfully!",
-				error: (err) => err.message || "Failed to complete onboarding",
+			await authClient.organization.setActive({
+				organizationId: data.id,
+			}),
+
+			await queryClient.invalidateQueries({
+				queryKey: sessionQueryOptions.queryKey,
+			}),
+			await queryClient.invalidateQueries({
+				queryKey: workspacesQueryOptions.queryKey,
+			}),
+		]);
+		toast.success("Onboarding completed successfully");
+		await navigate({
+			to: "/$slug/dashboard",
+			params: {
+				slug: orgSlug,
 			},
-		);
-	};
+		});
 
+		useOnboardingStore.setState({
+			name: "",
+			slug: "",
+		});
+	};
 	useEffect(() => {
 		if (!useOnboardingStore.persist.hasHydrated()) return;
-		// If needed, redirect back to a previous step here
-	}, []);
-
+		if (!orgName || !orgSlug) {
+			navigate({ to: "/onboarding/workspace" });
+		}
+	}, [orgName, orgSlug, navigate]);
 	return (
-		<div className="flex h-svh w-full items-center justify-center bg-muted/30 p-4">
-			<Card className="w-full max-w-md border-none bg-card/50 shadow-xl backdrop-blur-sm">
-				<CardHeader className="pb-2 text-center">
-					<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-						<IconCheck className="size-6" />
-					</div>
-					<CardTitle className="font-bold text-2xl">You're all set!</CardTitle>
-					<CardDescription>
-						Click the button below to finish your onboarding and start using the
-						dashboard.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="pt-4">
+		<div className="flex h-svh w-full items-center justify-center">
+			<Card className="w-full max-w-md">
+				<CardContent>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="flex flex-col gap-4"
 					>
 						<Button
 							type="submit"
-							className="h-11 w-full font-semibold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+							className="mt-4 w-full"
 							disabled={form.formState.isSubmitting}
 						>
-							{form.formState.isSubmitting ? (
-								<>
-									<IconLoader2 className="mr-2 h-5 w-5 animate-spin" />
-									Finishing...
-								</>
-							) : (
-								"Explore Dashboard"
-							)}
+							Finish onboarding
 						</Button>
 					</form>
 				</CardContent>

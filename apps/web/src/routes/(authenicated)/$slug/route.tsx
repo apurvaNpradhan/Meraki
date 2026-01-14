@@ -14,35 +14,50 @@ export const Route = createFileRoute("/(authenicated)/$slug")({
 			queryClient.ensureQueryData(workspacesQueryOptions),
 			queryClient.ensureQueryData(sessionQueryOptions),
 		]);
+
 		const workspaces = workspacesResponse.data;
 		const session = sessionResponse.data;
-		const currentWorkspace = workspaces?.find((w) => w.slug === slug);
-		if (!currentWorkspace) {
+
+		if (!session) {
+			throw redirect({ to: "/" });
+		}
+
+		const targetWorkspace = workspaces?.find((w) => w.slug === slug);
+		if (!targetWorkspace) {
 			throw redirect({
 				to: "/",
 			});
 		}
 
-		if (session?.session.activeOrganizationId !== currentWorkspace.id) {
-			const { data: updatedSession } = await authClient.organization.setActive({
-				organizationId: currentWorkspace.id,
+		const currentActiveId = session.session.activeOrganization?.id;
+		const customActiveId = session.session.activeOrganization?.id;
+
+		const isActive =
+			currentActiveId === targetWorkspace.id ||
+			customActiveId === targetWorkspace.id;
+
+		if (!isActive) {
+			const { error } = await authClient.organization.setActive({
+				organizationId: targetWorkspace.id,
 			});
 
-			if (updatedSession) {
-				queryClient.setQueryData(sessionQueryOptions.queryKey, {
-					data: updatedSession,
-					error: null,
+			if (!error) {
+				await queryClient.invalidateQueries({
+					queryKey: sessionQueryOptions.queryKey,
+				});
+				await queryClient.refetchQueries({
+					queryKey: sessionQueryOptions.queryKey,
 				});
 			}
-
-			queryClient.invalidateQueries({
-				queryKey: sessionQueryOptions.queryKey,
-			});
 		}
 
 		return {
-			workspace: currentWorkspace,
+			workspace: targetWorkspace,
 		};
+	},
+	loader: ({ context }) => {
+		const { workspace } = context;
+		return { workspace };
 	},
 	component: RouteComponent,
 });

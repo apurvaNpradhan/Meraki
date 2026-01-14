@@ -6,7 +6,6 @@ export const Route = createFileRoute("/(authenicated)")({
 	beforeLoad: async ({ context, location }) => {
 		const session =
 			await context.queryClient.ensureQueryData(sessionQueryOptions);
-
 		if (!session.data) {
 			redirect({
 				to: "/sign-in",
@@ -17,7 +16,7 @@ export const Route = createFileRoute("/(authenicated)")({
 			location.pathname.startsWith("/onboarding") === false
 		) {
 			redirect({
-				to: "/onboarding/complete",
+				to: "/onboarding/workspace",
 				throw: true,
 			});
 		}

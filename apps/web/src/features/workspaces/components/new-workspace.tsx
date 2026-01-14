@@ -19,7 +19,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { useModal } from "@/stores/modal.store";
-import { orpc } from "@/utils/orpc";
+import { orpc, queryClient } from "@/utils/orpc";
 
 const newWorkspaceSchema = z.object({
 	name: z.string().min(2, {
@@ -36,7 +36,7 @@ type NewWorkspaceValues = z.infer<typeof newWorkspaceSchema>;
 function NewWorkspaceModal() {
 	const { close } = useModal();
 	const { mutateAsync: upload } = useMutation(orpc.upload.mutationOptions());
-	const navigate = useNavigate();
+	const _navigate = useNavigate();
 	const [loadingLogo, setLoadingLogo] = useState(false);
 	const form = useForm<NewWorkspaceValues>({
 		resolver: zodResolver(newWorkspaceSchema),
@@ -54,7 +54,7 @@ function NewWorkspaceModal() {
 			const { url } = await upload({ file });
 			const absoluteUrl = `${env.VITE_SERVER_URL}${url}`;
 			form.setValue("logo", absoluteUrl);
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to upload logo");
 		} finally {
 			setLoadingLogo(false);
@@ -75,6 +75,7 @@ function NewWorkspaceModal() {
 		await authClient.organization.setActive({
 			organizationId: data.id,
 		});
+		queryClient.invalidateQueries();
 
 		toast.success("Workspace created successfully");
 		close();
@@ -91,9 +92,12 @@ function NewWorkspaceModal() {
 			>
 				<div className="flex flex-row items-center gap-2">
 					<div className="group relative cursor-pointer">
-						<Avatar className="h-10 w-10">
-							<AvatarImage src={form.getValues("logo") || ""} />
-							<AvatarFallback className="text-lg">
+						<Avatar className="h-10 w-10 rounded-md">
+							<AvatarImage
+								src={form.getValues("logo") || ""}
+								className="rounded-md"
+							/>
+							<AvatarFallback className="rounded-md text-lg">
 								{form.getValues("name")?.charAt(0) || "U"}
 							</AvatarFallback>
 						</Avatar>
@@ -172,7 +176,7 @@ function NewWorkspaceModal() {
 						className="mt-4 w-full"
 						disabled={form.formState.isSubmitting}
 					>
-						Create Workspace
+						{form.formState.isSubmitting ? "Creating..." : "Create Workspace"}
 					</Button>
 				</ResponsiveModalFooter>
 			</form>

@@ -7,6 +7,8 @@ import { Skeleton } from "./ui/skeleton";
 
 export default function UserMenu() {
 	const { data: session, isPending } = authClient.useSession();
+	const url =
+		session?.session.activeOrganization?.slug ?? "/onboarding/workspace";
 
 	if (isPending) {
 		return <Skeleton className="h-9 w-24" />;
@@ -20,5 +22,16 @@ export default function UserMenu() {
 		);
 	}
 
-	return <Button render={<Link to="/dashboard" />}>Go to app</Button>;
+	return (
+		<Button
+			render={
+				<Link
+					to={url}
+					params={{ slug: session?.session.activeOrganization?.slug ?? "" }}
+				/>
+			}
+		>
+			Go to app
+		</Button>
+	);
 }

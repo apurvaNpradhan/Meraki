@@ -3,20 +3,18 @@ import {
 	IconChevronDown,
 	IconLogout,
 	IconPlus,
+	IconSettings,
 } from "@tabler/icons-react";
-
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
@@ -36,34 +34,43 @@ export function NavWorkspace({
 		authClient.useListOrganizations();
 	const currentWorkspace = workspaces?.find((w) => w.id === activeWorkspaceId);
 
-	const handleSwitchWorkspace = async (workspaceId: string) => {
+	const handleSwitchWorkspace = (workspaceId: string) => {
 		const workspace = workspaces?.find((w) => w.id === workspaceId);
 		if (!workspace) return;
 
-		await authClient.organization.setActive({
+		authClient.organization.setActive({
 			organizationId: workspaceId,
 		});
-		queryClient.invalidateQueries();
+		queryClient.setQueryData(["session"], (oldData: any) => {
+			if (!oldData) return oldData;
+			return {
+				...oldData,
+				data: {
+					...oldData.data,
+					session: {
+						...oldData.data.session,
+						activeOrganization: workspace,
+					},
+				},
+			};
+		});
 		navigate({
 			to: "/$slug/dashboard",
 			params: { slug: workspace.slug as string },
 		});
 	};
 
-	const handleLeave = async () => {
-		if (!activeWorkspaceId) return;
-		try {
-			const { error } = await authClient.organization.leave({
-				organizationId: activeWorkspaceId,
-			});
-			if (error) throw error;
-			toast.success("Left organization successfully");
-			navigate({ to: "/" });
-		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "Failed to leave organization";
-			toast.error(message);
-		}
+	const handleLogout = async () => {
+		await authClient.signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					navigate({
+						to: "/",
+					});
+					queryClient.invalidateQueries();
+				},
+			},
+		});
 	};
 
 	if (isWorkspacesPending) {
@@ -72,85 +79,146 @@ export function NavWorkspace({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger>
-				<SidebarMenuButton
-					size="lg"
-					className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-					render={<div />}
-				>
-					<Avatar>
-						<AvatarImage
-							src={currentWorkspace?.logo ?? ""}
-							alt={currentWorkspace?.name ?? ""}
-						/>
-						<AvatarFallback>
-							{currentWorkspace?.name?.charAt(0) ?? "W"}
-						</AvatarFallback>
-					</Avatar>
-					<div className="grid flex-1 text-left text-sm leading-tight">
-						<span className="truncate font-semibold">
-							{currentWorkspace?.name ?? "Workspace"}
-						</span>
-						<span className="truncate text-xs">
-							{currentWorkspace?.slug ?? "Select a workspace"}
-						</span>
-					</div>
-					<IconChevronDown className="ml-auto size-4" />
-				</SidebarMenuButton>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				nativeButton={true}
+				render={
+					<SidebarMenuButton
+						size="lg"
+						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+					>
+						<Avatar className="h-8 w-8">
+							<AvatarImage
+								className={"rounded-md"}
+								src={currentWorkspace?.logo ?? ""}
+								alt={currentWorkspace?.name ?? ""}
+							/>
+							<AvatarFallback className="rounded-md">
+								{currentWorkspace?.name?.charAt(0) ?? "W"}
+							</AvatarFallback>
+						</Avatar>
+						<div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+							<span className="truncate font-semibold">
+								{currentWorkspace?.name ?? "Workspace"}
+							</span>
+						</div>
+						<IconChevronDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+					</SidebarMenuButton>
+				}
+			/>
 			<DropdownMenuContent
 				className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
 				align="start"
 				side={"bottom"}
 				sideOffset={4}
 			>
-				<DropdownMenuGroup>
-					<DropdownMenuSub>
-						<DropdownMenuSubTrigger>
-							<IconPlus className="size-4" />
-							Switch workspace
-						</DropdownMenuSubTrigger>
-						<DropdownMenuSubContent className="w-48 rounded-lg">
-							{workspaces?.map((org) => (
-								<DropdownMenuItem
-									key={org.id}
-									onClick={() => handleSwitchWorkspace(org.id)}
-									className="gap-2"
-								>
-									<Avatar>
-										<AvatarImage src={org.logo ?? ""} alt={org.name ?? ""} />
-										<AvatarFallback>
-											{org.name?.charAt(0) ?? "W"}
-										</AvatarFallback>
-									</Avatar>
-									{org.name}
-									{org.id === currentWorkspace?.id && (
-										<IconCheck className="ml-auto size-4" />
-									)}
-								</DropdownMenuItem>
-							))}
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								onClick={() =>
-									open({
-										type: "NEW_WORKSPACE",
-									})
-								}
-							>
-								<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-									<IconPlus className="size-4" />
-								</div>
-								Create workspace
-							</DropdownMenuItem>
-						</DropdownMenuSubContent>
-					</DropdownMenuSub>
-					<DropdownMenuSeparator />
+				<div className="flex items-center gap-2 p-2">
+					<div className="flex size-8 items-center justify-center rounded-md border">
+						<Avatar className="h-8 w-8">
+							<AvatarImage
+								src={currentWorkspace?.logo ?? ""}
+								alt={currentWorkspace?.name ?? ""}
+								className={"rounded-md"}
+							/>
+							<AvatarFallback className="rounded-md">
+								{currentWorkspace?.name?.charAt(0) ?? "W"}
+							</AvatarFallback>
+						</Avatar>
+					</div>
+					<div className="grid flex-1 text-left text-sm leading-tight">
+						<span className="truncate font-semibold">
+							{currentWorkspace?.name}
+						</span>
+						<span className="truncate text-muted-foreground text-xs">
+							{(currentWorkspace as any)?.members?.length ?? 1} members
+						</span>
+					</div>
+				</div>
+
+				<div className="flex items-center justify-between gap-1 p-2">
 					<DropdownMenuItem
-						className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
-						onClick={handleLeave}
+						onClick={() =>
+							navigate({
+								to: "/$slug/settings/account/profile",
+								params: { slug: currentWorkspace?.slug ?? "" },
+							})
+						}
+						className="gap-2"
+						render={<Button variant={"outline"} size={"sm"} />}
+						nativeButton={true}
 					>
-						<IconLogout className="mr-2 size-4" />
-						Leave organization
+						<IconSettings className="size-4 text-muted-foreground" />
+						Settings
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={() =>
+							navigate({
+								to: "/$slug/settings/account/profile",
+								params: { slug: currentWorkspace?.slug ?? "" },
+							})
+						}
+						className="gap-2"
+						render={<Button variant={"outline"} size={"sm"} />}
+						nativeButton={true}
+					>
+						<UserPlus className="size-4 font-medium text-muted-foreground" />
+						Invite members
+					</DropdownMenuItem>
+				</div>
+
+				<DropdownMenuSeparator />
+
+				<DropdownMenuGroup>
+					<div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
+						Switch workspace
+					</div>
+					{workspaces?.map((org) => (
+						<DropdownMenuItem
+							key={org.id}
+							onClick={() => handleSwitchWorkspace(org.id)}
+							className="gap-2"
+						>
+							<Avatar className="size-6 rounded-md">
+								<AvatarImage
+									src={org.logo ?? ""}
+									alt={org.name ?? ""}
+									className="rounded-md"
+								/>
+								<AvatarFallback className="rounded-md">
+									{org.name?.charAt(0) ?? "W"}
+								</AvatarFallback>
+							</Avatar>
+							{org.name}
+							{org.id === currentWorkspace?.id && (
+								<IconCheck className="ml-auto size-4" />
+							)}
+						</DropdownMenuItem>
+					))}
+					<DropdownMenuItem
+						onClick={() =>
+							open({
+								type: "NEW_WORKSPACE",
+							})
+						}
+						className="gap-2"
+					>
+						<div className="flex size-6 items-center justify-center rounded-md border bg-background">
+							<IconPlus className="size-4" />
+						</div>
+						<span className="font-medium text-muted-foreground">
+							New workspace
+						</span>
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
+
+				<DropdownMenuSeparator />
+
+				<DropdownMenuGroup>
+					<DropdownMenuItem
+						className="gap-2 text-destructive focus:bg-destructive focus:text-destructive-foreground"
+						onClick={handleLogout}
+					>
+						<IconLogout className="size-4" />
+						Log out
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>

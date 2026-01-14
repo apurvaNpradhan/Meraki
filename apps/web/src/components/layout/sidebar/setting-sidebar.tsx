@@ -1,6 +1,11 @@
-import { IconArrowLeft, IconSettings2 } from "@tabler/icons-react";
+import {
+	IconArrowLeft,
+	IconSettings2,
+	IconSettingsBolt,
+	IconUsers,
+} from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useLoaderData, useNavigate, useRouter } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	Sidebar,
@@ -17,12 +22,16 @@ import { sessionQueryOptions } from "@/lib/auth-client";
 export function SettingSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar>) {
+	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
 	const { data: session } = useSuspenseQuery(sessionQueryOptions);
 	const user = session?.data?.user;
 	const isActive = useRouteActive();
 	const router = useRouter();
 	const onBack = () => {
-		router.navigate({ to: "/dashboard" });
+		router.navigate({
+			to: "/$slug/dashboard",
+			params: { slug: workspace.slug },
+		});
 	};
 	const navigate = useNavigate();
 	return (
@@ -44,10 +53,11 @@ export function SettingSidebar({
 					</SidebarGroupLabel>
 					<SidebarGroupContent className="flex flex-col gap-1">
 						<SidebarMenuButton
-							isActive={isActive("/settings/account/profile")}
+							isActive={isActive(`${workspace.slug}/settings/account/profile`)}
 							onClick={() =>
 								navigate({
-									to: "/settings/account/profile",
+									to: "/$slug/settings/account/profile",
+									params: { slug: workspace.slug },
 								})
 							}
 						>
@@ -63,15 +73,49 @@ export function SettingSidebar({
 							<span className="font-medium">{user?.name}</span>
 						</SidebarMenuButton>
 						<SidebarMenuButton
-							isActive={isActive("/settings/account/preferences")}
+							isActive={isActive(
+								`${workspace.slug}/settings/account/preferences`,
+							)}
 							onClick={() =>
 								navigate({
-									to: "/settings/account/preferences",
+									to: "/$slug/settings/account/preferences",
+									params: { slug: workspace.slug },
 								})
 							}
 						>
 							<IconSettings2 />
 							Preferences
+						</SidebarMenuButton>
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup className="p-0">
+					<SidebarGroupLabel className="font-medium text-muted-foreground/80">
+						Workspace
+					</SidebarGroupLabel>
+					<SidebarGroupContent className="flex flex-col gap-1">
+						<SidebarMenuButton
+							isActive={isActive(`${workspace.slug}/settings/workspace`)}
+							onClick={() =>
+								navigate({
+									to: "/$slug/settings/workspace/general",
+									params: { slug: workspace.slug },
+								})
+							}
+						>
+							<IconSettingsBolt />
+							General
+						</SidebarMenuButton>
+						<SidebarMenuButton
+							isActive={isActive(`${workspace.slug}/settings/workspace/people`)}
+							onClick={() =>
+								navigate({
+									to: "/$slug/settings/workspace/people",
+									params: { slug: workspace.slug },
+								})
+							}
+						>
+							<IconUsers />
+							People
 						</SidebarMenuButton>
 					</SidebarGroupContent>
 				</SidebarGroup>

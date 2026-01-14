@@ -14,7 +14,10 @@ export const Route = createFileRoute("/(sign)")({
 				});
 			}
 			redirect({
-				to: "/dashboard",
+				to: "/$slug/dashboard",
+				params: {
+					slug: session.data.session.activeOrganization?.slug ?? "",
+				},
 				throw: true,
 			});
 		}

@@ -4,33 +4,35 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import z from "zod";
-import {
-	bodyPartsData,
-	equipmentsData,
-	muscleGroupsData,
-} from "../data/exercises";
-import { exercises } from "../schema/exercise";
-export const SelectExercise = createSelectSchema(exercises, {}).extend({
-	exerciseId: z.string(),
+import { taskStatuses, tasks } from "../schema/task";
+
+export const TaskSchema = createSelectSchema(tasks).omit({
+	id: true,
+	parentTaskId: true,
+	assigneeId: true,
+	createdBy: true,
+	deletedBy: true,
+	organizationId: true,
 });
 
-export const InsertExercise = createInsertSchema(exercises, {
-	name: z.string().min(1, "Name is required"),
-	gifUrl: z.url("Invalid gif url"),
-	thumbnailUrl: z.url("Invalid thumbnail url"),
-	targetMuscles: z.array(z.enum(muscleGroupsData)),
-	bodyParts: z.array(z.enum(bodyPartsData)),
-	equipments: z.array(z.enum(equipmentsData)),
-	secondaryMuscles: z.array(z.enum(muscleGroupsData)),
-	instructions: z.array(z.string()).min(1, "Instructions is required"),
+export const InsertTaskSchema = createInsertSchema(tasks, {
+	title: z.string().min(1).max(500),
+	description: z.string().optional(),
+	status: z.enum(taskStatuses).default("todo"),
+	priority: z.number().default(0),
+	position: z.string().min(1).max(32),
+	parentTaskId: z.bigint().optional(),
+	organizationId: z.string(),
 }).omit({
 	publicId: true,
-	updatedAt: true,
 	createdAt: true,
+	updatedAt: true,
 	deletedAt: true,
+	deletedBy: true,
 });
 
-export const UpdateExercise = createUpdateSchema(exercises).omit({
+export const UpdateTaskSchema = createUpdateSchema(tasks).omit({
+	publicId: true,
 	createdAt: true,
-	deletedAt: true,
+	organizationId: true,
 });

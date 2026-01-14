@@ -1,19 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import SettingLayout from "@/components/layout/setting-layout";
-import { PreferencesForm } from "@/features/settings/components/preferences-form";
-
+import { AccountSettingsPage } from "@/features/settings/components/account-settings-page";
 export const Route = createFileRoute(
-	"/(authenicated)/settings/account/preferences/",
+	"/(authenicated)/$slug/settings/account/profile/",
 )({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
 				name: "description",
-				content: "Preferences",
+				content: "Account Settings",
 			},
 			{
-				title: "Preferences",
+				title: "Account Settings",
 			},
 		],
 	}),
@@ -23,8 +22,8 @@ function RouteComponent() {
 	return (
 		<SettingLayout>
 			<div className="mx-auto mt-15 flex max-w-4xl flex-col gap-7 p-6">
-				<span className="font-bold text-3xl">Preferences</span>
-				<PreferencesForm />
+				<span className="font-semibold text-3xl">Account Settings</span>
+				<AccountSettingsPage />
 			</div>
 		</SettingLayout>
 	);

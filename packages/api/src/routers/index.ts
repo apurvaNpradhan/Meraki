@@ -1,6 +1,7 @@
 import { ORPCError, type RouterClient } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../index";
+import { TaskRouter } from "./task";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = [
@@ -10,6 +11,7 @@ const ALLOWED_MIME_TYPES = [
 	"application/pdf",
 ];
 export const appRouter = {
+	task: TaskRouter,
 	healthCheck: publicProcedure.handler(() => {
 		return "OK";
 	}),

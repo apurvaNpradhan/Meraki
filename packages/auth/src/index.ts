@@ -80,8 +80,8 @@ export const auth = betterAuth({
 					return {
 						data: {
 							...session,
-							...(member?.organizationId && {
-								activeOrganizationId: member?.organizationId,
+							...(member?.organization && {
+								activeOrganization: member?.organization,
 							}),
 						},
 					};
@@ -156,11 +156,27 @@ export const auth = betterAuth({
 
 		expo(),
 		customSession(async ({ user, session }) => {
-			let activeOrganizationId = (session as any).activeOrganizationId;
-			if (!activeOrganizationId) {
-				const member = await authRepo.getMember(user.id);
-				activeOrganizationId = member?.organizationId;
+			const activeOrganizationId = (session as any).activeOrganizationId;
+			let memberData = null;
+
+			if (activeOrganizationId) {
+				memberData = await authRepo.getMemberByOrganizationId(
+					user.id,
+					activeOrganizationId,
+				);
 			}
+
+			if (!memberData) {
+				memberData = await authRepo.getMember(user.id);
+			}
+
+			const activeOrganization = memberData?.organization
+				? {
+						id: memberData.organization.id,
+						slug: memberData.organization.slug,
+					}
+				: null;
+
 			return {
 				user: {
 					...user,
@@ -170,7 +186,7 @@ export const auth = betterAuth({
 				},
 				session: {
 					...session,
-					activeOrganizationId,
+					activeOrganization,
 				},
 			};
 		}),

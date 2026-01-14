@@ -7,6 +7,7 @@ export const MODAL_TYPES = [
 	"FORGOT_PASSWORD",
 	"DELETE_ACCOUNT",
 	"NEW_WORKSPACE",
+	"DELETE_WORKSPACE",
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
