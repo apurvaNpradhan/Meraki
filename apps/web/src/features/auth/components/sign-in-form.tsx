@@ -62,7 +62,7 @@ export default function SignInForm({
 	const handleSocialSignIn = async (provider: "google" | "github") => {
 		await authClient.signIn.social({
 			provider,
-			callbackURL: `${env.VITE_BASE_URL}/dashboard`,
+			callbackURL: `${env.VITE_BASE_URL}/home`,
 		});
 	};
 
@@ -82,7 +82,7 @@ export default function SignInForm({
 				}
 
 				await queryClient.refetchQueries(sessionQueryOptions);
-				navigate({ to: "/dashboard" });
+				navigate({ to: "/$slug/home", params: { slug: "active" } });
 				return resData;
 			})(),
 			{

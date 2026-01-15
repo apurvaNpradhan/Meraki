@@ -22,6 +22,7 @@ export interface SelectorItem<T> {
 	name: string;
 	icon: React.FC<React.SVGProps<SVGSVGElement>>;
 	value: T;
+	color?: string;
 }
 
 interface GenericSelectorProps<T> {
@@ -58,15 +59,16 @@ export function GenericSelector<T>({
 	const selectedItem = items.find((item) => item.value === internalValue);
 
 	return (
-		<div className={cn("inline-block", className)}>
-			<Popover open={open} onOpenChange={setOpen}>
-				<PopoverTrigger asChild>
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger
+				render={
 					<Button
 						id={id}
 						variant="ghost"
 						size="sm"
-						className="flex h-8 items-center gap-2 px-2"
+						className={cn("flex h-8 w-full gap-2 px-2", className)}
 						role="combobox"
+						onClick={(e) => e.stopPropagation()}
 						aria-expanded={open}
 					>
 						{selectedItem ? (
@@ -84,33 +86,33 @@ export function GenericSelector<T>({
 							</span>
 						)}
 					</Button>
-				</PopoverTrigger>
-				<PopoverContent className="w-48 p-0" align="start">
-					<Command>
-						<CommandInput placeholder={placeholder} />
-						<CommandList>
-							<CommandEmpty>No results found.</CommandEmpty>
-							<CommandGroup>
-								{items.map((item) => (
-									<CommandItem
-										key={item.id}
-										onSelect={() => handleSelect(item.value)}
-										className="flex items-center justify-between"
-									>
-										<div className="flex items-center gap-2">
-											<item.icon className="size-4 text-muted-foreground" />
-											<span className="text-xs">{item.name}</span>
-										</div>
-										{internalValue === item.value && (
-											<IconCheck size={14} className="ml-auto" />
-										)}
-									</CommandItem>
-								))}
-							</CommandGroup>
-						</CommandList>
-					</Command>
-				</PopoverContent>
-			</Popover>
-		</div>
+				}
+			/>
+			<PopoverContent className="w-48 p-0" align="start">
+				<Command>
+					<CommandInput placeholder={placeholder} />
+					<CommandList>
+						<CommandEmpty>No results found.</CommandEmpty>
+						<CommandGroup>
+							{items.map((item) => (
+								<CommandItem
+									key={item.id}
+									onSelect={() => handleSelect(item.value)}
+									className="flex items-center justify-between"
+								>
+									<div className="flex items-center gap-2">
+										<item.icon className="size-4 text-muted-foreground" />
+										<span className="text-xs">{item.name}</span>
+									</div>
+									{internalValue === item.value && (
+										<IconCheck size={14} className="ml-auto" />
+									)}
+								</CommandItem>
+							))}
+						</CommandGroup>
+					</CommandList>
+				</Command>
+			</PopoverContent>
+		</Popover>
 	);
 }

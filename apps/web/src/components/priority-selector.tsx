@@ -99,23 +99,54 @@ const LowPriorityIcon = ({ className, ...props }: IconProps) => (
 );
 
 export const priorities: SelectorItem<number>[] = [
-	{ id: "no-priority", name: "No priority", value: 0, icon: NoPriorityIcon },
-	{ id: "urgent", name: "Urgent", value: 4, icon: UrgentPriorityIcon },
-	{ id: "high", name: "High", value: 3, icon: HighPriorityIcon },
-	{ id: "medium", name: "Medium", value: 2, icon: MediumPriorityIcon },
-	{ id: "low", name: "Low", value: 1, icon: LowPriorityIcon },
+	{
+		id: "no-priority",
+		name: "No priority",
+		value: 0,
+		icon: NoPriorityIcon,
+		color: "#727169",
+	},
+	{
+		id: "urgent",
+		name: "Urgent",
+		value: 4,
+		icon: UrgentPriorityIcon,
+		color: "#C34043",
+	},
+	{
+		id: "high",
+		name: "High",
+		value: 3,
+		icon: HighPriorityIcon,
+		color: "#E46876",
+	},
+	{
+		id: "medium",
+		name: "Medium",
+		value: 2,
+		icon: MediumPriorityIcon,
+		color: "#DCA561",
+	},
+	{
+		id: "low",
+		name: "Low",
+		value: 1,
+		icon: LowPriorityIcon,
+		color: "#98BB6C",
+	},
 ];
-
 interface PrioritySelectorProps {
 	value?: number;
 	onPriorityChange?: (priority: number) => void;
 	showLabel?: boolean;
+	className?: string;
 }
 
 export function PrioritySelector({
 	value = 0,
 	onPriorityChange,
 	showLabel = false,
+	className,
 }: PrioritySelectorProps) {
 	return (
 		<GenericSelector
@@ -124,6 +155,7 @@ export function PrioritySelector({
 			onValueChange={onPriorityChange}
 			showLabel={showLabel}
 			placeholder="Priority"
+			className={className}
 		/>
 	);
 }

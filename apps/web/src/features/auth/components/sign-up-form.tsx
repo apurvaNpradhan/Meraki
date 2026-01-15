@@ -66,7 +66,7 @@ export default function SignUpForm({
 	const handleSocialSignIn = async (provider: "google" | "github") => {
 		await authClient.signIn.social({
 			provider,
-			callbackURL: `${env.VITE_BASE_URL}/dashboard`,
+			callbackURL: `${env.VITE_BASE_URL}/home`,
 		});
 	};
 
@@ -78,7 +78,7 @@ export default function SignUpForm({
 					email: data.email,
 					password: data.password,
 					name: data.name,
-					callbackURL: `${env.VITE_BASE_URL}/dashboard`,
+					callbackURL: `${env.VITE_BASE_URL}/home`,
 				});
 
 				if (error) {

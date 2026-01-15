@@ -1,6 +1,6 @@
-import { IconLayoutKanban } from "@tabler/icons-react";
+import { IconHome, IconInbox, IconLayoutKanban } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useLoaderData, useNavigate } from "@tanstack/react-router";
 import type React from "react";
 import {
 	Sidebar,
@@ -17,26 +17,17 @@ import { sessionQueryOptions } from "@/lib/auth-client";
 import { NavWorkspace } from "./nav-workspace";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { data, isPending } = useQuery({
-		...sessionQueryOptions,
+	const { workspace, session } = useLoaderData({
+		from: "/(authenicated)/$slug",
 	});
 
 	const isActive = useRouteActive();
 	const navigate = useNavigate();
-	console.log(
-		isActive(`${data?.data?.session?.activeOrganization?.slug}/dashboard`),
-	);
 	return (
 		<Sidebar collapsible="icon" {...props} variant="inset">
 			<SidebarHeader className="p-0">
-				{isPending ? (
-					<Skeleton className="h-12 w-full" />
-				) : (
-					data?.data?.session?.activeOrganization && (
-						<NavWorkspace
-							activeWorkspaceId={data?.data?.session?.activeOrganization.id}
-						/>
-					)
+				{session?.session.activeOrganization && (
+					<NavWorkspace activeWorkspaceId={workspace.id} />
 				)}
 			</SidebarHeader>
 			<SidebarContent className="mt-5 flex flex-col gap-5 text-muted-foreground">
@@ -44,20 +35,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<SidebarGroupContent className="flex flex-col gap-1">
 						<SidebarMenuButton
 							size={"sm"}
-							isActive={isActive(
-								`${data?.data?.session?.activeOrganization?.slug}/dashboard`,
-							)}
+							className="text-md"
+							isActive={isActive(`${workspace.slug}/inbox`)}
 							onClick={() =>
 								navigate({
-									to: "/$slug/dashboard",
+									to: "/$slug/inbox",
 									params: {
-										slug: data?.data?.session?.activeOrganization?.slug ?? "",
+										slug: workspace.slug,
 									},
 								})
 							}
 						>
-							<IconLayoutKanban />
-							Dashboard
+							<IconInbox />
+							Inbox
+						</SidebarMenuButton>
+						<SidebarMenuButton
+							size={"sm"}
+							className="text-md"
+							isActive={isActive(`${workspace.slug}/home`)}
+							onClick={() =>
+								navigate({
+									to: "/$slug/home",
+									params: {
+										slug: workspace.slug,
+									},
+								})
+							}
+						>
+							<IconHome />
+							Home
 						</SidebarMenuButton>
 					</SidebarGroupContent>
 				</SidebarGroup>

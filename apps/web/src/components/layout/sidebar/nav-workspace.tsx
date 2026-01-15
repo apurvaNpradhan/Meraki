@@ -55,7 +55,7 @@ export function NavWorkspace({
 			};
 		});
 		navigate({
-			to: "/$slug/dashboard",
+			to: "/$slug/home",
 			params: { slug: workspace.slug as string },
 		});
 	};

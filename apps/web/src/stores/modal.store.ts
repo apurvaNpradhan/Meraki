@@ -8,6 +8,8 @@ export const MODAL_TYPES = [
 	"DELETE_ACCOUNT",
 	"NEW_WORKSPACE",
 	"DELETE_WORKSPACE",
+	"CREATE_TASK",
+	"TASK_DETAIL",
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
@@ -17,6 +19,7 @@ export interface ModalInstance {
 	data?: Record<string, unknown>;
 	title?: string;
 	description?: string;
+	modalSize?: "sm" | "md" | "lg" | "fullscreen";
 	closeOnClickOutside?: boolean;
 }
 

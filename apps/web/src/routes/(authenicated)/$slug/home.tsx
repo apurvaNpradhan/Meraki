@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import AppLayout from "@/components/layout/app-layout";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-export const Route = createFileRoute("/(authenicated)/$slug/dashboard")({
+export const Route = createFileRoute("/(authenicated)/$slug/home")({
 	component: RouteComponent,
 	beforeLoad({ context }) {
 		const { workspace } = context;
@@ -25,7 +25,7 @@ function Header() {
 		<div className="flex w-full flex-row items-center justify-between border-b px-2 py-1">
 			<div className="flex items-center gap-2">
 				<SidebarTrigger />
-				<span className="font-semibold text-sm">Dashboard</span>
+				<span className="font-semibold text-sm">Home</span>
 			</div>
 		</div>
 	);

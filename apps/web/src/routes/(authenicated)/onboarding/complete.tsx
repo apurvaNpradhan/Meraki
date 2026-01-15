@@ -53,7 +53,7 @@ function RouteComponent() {
 		]);
 		toast.success("Onboarding completed successfully");
 		await navigate({
-			to: "/$slug/dashboard",
+			to: "/$slug/home",
 			params: {
 				slug: orgSlug,
 			},

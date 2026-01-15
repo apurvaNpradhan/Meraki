@@ -29,7 +29,7 @@ export function SettingSidebar({
 	const router = useRouter();
 	const onBack = () => {
 		router.navigate({
-			to: "/$slug/dashboard",
+			to: "/$slug/home",
 			params: { slug: workspace.slug },
 		});
 	};

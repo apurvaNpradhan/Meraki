@@ -20,21 +20,21 @@ const Modal: React.FC<Props> = ({
 	positionFromTop = "none",
 }) => {
 	const { isOpen, close } = useModal();
-
 	const shouldShow = isVisible ?? isOpen;
 	const shouldCloseOnClickOutside = true;
 	const modalSizeMap = {
-		sm: "sm:max-w-[400px]",
-		md: "sm:max-w-[550px]",
-		lg: "sm:max-w-[800px]",
-		fullscreen: "sm:max-w-[calc(100vw-80px)] sm:max-h-[calc(100vh-80px)]",
+		sm: "lg:w-full lg:max-w-[400px]",
+		md: "lg:w-full lg:max-w-[550px]",
+		lg: "lg:w-full lg:max-w-[896px]",
+		fullscreen:
+			"lg:w-full lg:max-w-[calc(100vw-80px)] lg:max-h-[calc(100vh-80px)]",
 	};
 
 	const positionFromTopClasses = {
 		none: "", // Default centering from DialogContent
-		sm: "top-[10%] translate-y-0",
-		md: "top-[20%] translate-y-0",
-		lg: "top-[30%] translate-y-0",
+		sm: "lg:top-[10%] lg:translate-y-0",
+		md: "lg:top-[20%] lg:translate-y-0",
+		lg: "lg:top-[30%] lg:translate-y-0",
 	};
 
 	const handleOpenChange = (open: boolean) => {

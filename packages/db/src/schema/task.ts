@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	bigint,
+	boolean,
 	index,
 	integer,
 	pgEnum,
@@ -48,6 +49,7 @@ export const tasks = pgTable(
 		status: taskStatusEnum("status").default("todo").notNull(),
 		priority: integer("priority").default(0).notNull(),
 		position: varchar("position", { length: 32 }).notNull(),
+		isArchived: boolean("is_archived").default(false).notNull(),
 		parentTaskId: bigint("parent_task_id", { mode: "bigint" }).references(
 			(): AnyPgColumn => tasks.id,
 			{ onDelete: "cascade" },

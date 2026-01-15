@@ -24,12 +24,14 @@ interface StatusSelectorProps {
 	value?: TaskStatus;
 	onStatusChange?: (status: TaskStatus) => void;
 	showLabel?: boolean;
+	className?: string;
 }
 
 export function StatusSelector({
 	value = "todo",
 	onStatusChange,
 	showLabel = false,
+	className,
 }: StatusSelectorProps) {
 	return (
 		<GenericSelector
@@ -38,6 +40,7 @@ export function StatusSelector({
 			onValueChange={onStatusChange}
 			showLabel={showLabel}
 			placeholder="Status"
+			className={className}
 		/>
 	);
 }

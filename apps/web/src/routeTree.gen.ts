@@ -24,7 +24,8 @@ import { Route as authenicatedSlugRouteRouteImport } from './routes/(authenicate
 import { Route as authenicatedOnboardingIndexRouteImport } from './routes/(authenicated)/onboarding/index'
 import { Route as authenicatedOnboardingWorkspaceRouteImport } from './routes/(authenicated)/onboarding/workspace'
 import { Route as authenicatedOnboardingCompleteRouteImport } from './routes/(authenicated)/onboarding/complete'
-import { Route as authenicatedSlugDashboardRouteImport } from './routes/(authenicated)/$slug/dashboard'
+import { Route as authenicatedSlugHomeRouteImport } from './routes/(authenicated)/$slug/home'
+import { Route as authenicatedSlugInboxIndexRouteImport } from './routes/(authenicated)/$slug/inbox/index'
 import { Route as authenicatedSlugSettingsWorkspacePeopleRouteImport } from './routes/(authenicated)/$slug/settings/workspace/people'
 import { Route as authenicatedSlugSettingsWorkspaceGeneralRouteImport } from './routes/(authenicated)/$slug/settings/workspace/general'
 import { Route as authenicatedSlugSettingsAccountProfileIndexRouteImport } from './routes/(authenicated)/$slug/settings/account/profile/index'
@@ -107,10 +108,15 @@ const authenicatedOnboardingCompleteRoute =
     path: '/complete',
     getParentRoute: () => authenicatedOnboardingRouteRoute,
   } as any)
-const authenicatedSlugDashboardRoute =
-  authenicatedSlugDashboardRouteImport.update({
-    id: '/dashboard',
-    path: '/dashboard',
+const authenicatedSlugHomeRoute = authenicatedSlugHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => authenicatedSlugRouteRoute,
+} as any)
+const authenicatedSlugInboxIndexRoute =
+  authenicatedSlugInboxIndexRouteImport.update({
+    id: '/inbox/',
+    path: '/inbox/',
     getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
 const authenicatedSlugSettingsWorkspacePeopleRoute =
@@ -149,10 +155,11 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof signSignInRoute
   '/sign-up': typeof signSignUpRoute
   '/': typeof publicIndexRoute
-  '/$slug/dashboard': typeof authenicatedSlugDashboardRoute
+  '/$slug/home': typeof authenicatedSlugHomeRoute
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
   '/onboarding/': typeof authenicatedOnboardingIndexRoute
+  '/$slug/inbox': typeof authenicatedSlugInboxIndexRoute
   '/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   '/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
   '/$slug/settings/account/preferences': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
@@ -168,10 +175,11 @@ export interface FileRoutesByTo {
   '/sign-in': typeof signSignInRoute
   '/sign-up': typeof signSignUpRoute
   '/': typeof publicIndexRoute
-  '/$slug/dashboard': typeof authenicatedSlugDashboardRoute
+  '/$slug/home': typeof authenicatedSlugHomeRoute
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
   '/onboarding': typeof authenicatedOnboardingIndexRoute
+  '/$slug/inbox': typeof authenicatedSlugInboxIndexRoute
   '/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   '/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
   '/$slug/settings/account/preferences': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
@@ -191,10 +199,11 @@ export interface FileRoutesById {
   '/(sign)/sign-in': typeof signSignInRoute
   '/(sign)/sign-up': typeof signSignUpRoute
   '/(public)/': typeof publicIndexRoute
-  '/(authenicated)/$slug/dashboard': typeof authenicatedSlugDashboardRoute
+  '/(authenicated)/$slug/home': typeof authenicatedSlugHomeRoute
   '/(authenicated)/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/(authenicated)/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
   '/(authenicated)/onboarding/': typeof authenicatedOnboardingIndexRoute
+  '/(authenicated)/$slug/inbox/': typeof authenicatedSlugInboxIndexRoute
   '/(authenicated)/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   '/(authenicated)/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
   '/(authenicated)/$slug/settings/account/preferences/': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
@@ -213,10 +222,11 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/'
-    | '/$slug/dashboard'
+    | '/$slug/home'
     | '/onboarding/complete'
     | '/onboarding/workspace'
     | '/onboarding/'
+    | '/$slug/inbox'
     | '/$slug/settings/workspace/general'
     | '/$slug/settings/workspace/people'
     | '/$slug/settings/account/preferences'
@@ -232,10 +242,11 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/'
-    | '/$slug/dashboard'
+    | '/$slug/home'
     | '/onboarding/complete'
     | '/onboarding/workspace'
     | '/onboarding'
+    | '/$slug/inbox'
     | '/$slug/settings/workspace/general'
     | '/$slug/settings/workspace/people'
     | '/$slug/settings/account/preferences'
@@ -254,10 +265,11 @@ export interface FileRouteTypes {
     | '/(sign)/sign-in'
     | '/(sign)/sign-up'
     | '/(public)/'
-    | '/(authenicated)/$slug/dashboard'
+    | '/(authenicated)/$slug/home'
     | '/(authenicated)/onboarding/complete'
     | '/(authenicated)/onboarding/workspace'
     | '/(authenicated)/onboarding/'
+    | '/(authenicated)/$slug/inbox/'
     | '/(authenicated)/$slug/settings/workspace/general'
     | '/(authenicated)/$slug/settings/workspace/people'
     | '/(authenicated)/$slug/settings/account/preferences/'
@@ -380,11 +392,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenicatedOnboardingCompleteRouteImport
       parentRoute: typeof authenicatedOnboardingRouteRoute
     }
-    '/(authenicated)/$slug/dashboard': {
-      id: '/(authenicated)/$slug/dashboard'
-      path: '/dashboard'
-      fullPath: '/$slug/dashboard'
-      preLoaderRoute: typeof authenicatedSlugDashboardRouteImport
+    '/(authenicated)/$slug/home': {
+      id: '/(authenicated)/$slug/home'
+      path: '/home'
+      fullPath: '/$slug/home'
+      preLoaderRoute: typeof authenicatedSlugHomeRouteImport
+      parentRoute: typeof authenicatedSlugRouteRoute
+    }
+    '/(authenicated)/$slug/inbox/': {
+      id: '/(authenicated)/$slug/inbox/'
+      path: '/inbox'
+      fullPath: '/$slug/inbox'
+      preLoaderRoute: typeof authenicatedSlugInboxIndexRouteImport
       parentRoute: typeof authenicatedSlugRouteRoute
     }
     '/(authenicated)/$slug/settings/workspace/people': {
@@ -419,7 +438,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface authenicatedSlugRouteRouteChildren {
-  authenicatedSlugDashboardRoute: typeof authenicatedSlugDashboardRoute
+  authenicatedSlugHomeRoute: typeof authenicatedSlugHomeRoute
+  authenicatedSlugInboxIndexRoute: typeof authenicatedSlugInboxIndexRoute
   authenicatedSlugSettingsWorkspaceGeneralRoute: typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   authenicatedSlugSettingsWorkspacePeopleRoute: typeof authenicatedSlugSettingsWorkspacePeopleRoute
   authenicatedSlugSettingsAccountPreferencesIndexRoute: typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
@@ -427,7 +447,8 @@ interface authenicatedSlugRouteRouteChildren {
 }
 
 const authenicatedSlugRouteRouteChildren: authenicatedSlugRouteRouteChildren = {
-  authenicatedSlugDashboardRoute: authenicatedSlugDashboardRoute,
+  authenicatedSlugHomeRoute: authenicatedSlugHomeRoute,
+  authenicatedSlugInboxIndexRoute: authenicatedSlugInboxIndexRoute,
   authenicatedSlugSettingsWorkspaceGeneralRoute:
     authenicatedSlugSettingsWorkspaceGeneralRoute,
   authenicatedSlugSettingsWorkspacePeopleRoute:

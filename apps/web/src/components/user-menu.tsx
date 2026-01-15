@@ -7,8 +7,9 @@ import { Skeleton } from "./ui/skeleton";
 
 export default function UserMenu() {
 	const { data: session, isPending } = authClient.useSession();
-	const url =
-		session?.session.activeOrganization?.slug ?? "/onboarding/workspace";
+	const url = session?.session.activeOrganization?.slug
+		? "/$slug/home"
+		: "/onboarding/workspace";
 
 	if (isPending) {
 		return <Skeleton className="h-9 w-24" />;

@@ -39,7 +39,7 @@ const responsiveModalVariants = (
 		"data-closed:animate-out data-open:animate-in",
 		"data-closed:duration-300 data-open:duration-300", // Consistent timing
 		// Desktop styles - remove conflicting animations
-		"lg:top-[50%] lg:left-[50%] lg:w-full lg:max-w-lg",
+		"lg:top-[50%] lg:left-[50%]",
 		"lg:translate-x-[-50%] lg:translate-y-[-50%]",
 		"lg:rounded-xl lg:border",
 		// Only desktop fade/zoom, no duration override

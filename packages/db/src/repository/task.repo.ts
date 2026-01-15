@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import type z from "zod";
 import { db } from "..";
 import type { InsertTaskSchema, UpdateTaskSchema } from "../lib/zod-schemas";
@@ -6,7 +6,10 @@ import { tasks } from "../schema";
 
 export const getAllByWorkspaceId = async (args: { workspaceId: string }) => {
 	return await db.query.tasks.findMany({
-		where: eq(tasks.organizationId, args.workspaceId),
+		where: and(
+			isNull(tasks.deletedAt),
+			eq(tasks.organizationId, args.workspaceId),
+		),
 		columns: {
 			publicId: true,
 			title: true,
@@ -16,16 +19,31 @@ export const getAllByWorkspaceId = async (args: { workspaceId: string }) => {
 			position: true,
 			deadline: true,
 			completedAt: true,
+			isArchived: true,
 			createdAt: true,
 			updatedAt: true,
 			deletedAt: true,
 		},
-		with: {
-			organization: {
-				columns: {
-					id: true,
-				},
-			},
+	});
+};
+export const getByPublicId = async (args: { taskId: string }) => {
+	return await db.query.tasks.findFirst({
+		where: and(eq(tasks.publicId, args.taskId), isNull(tasks.deletedAt)),
+		columns: {
+			publicId: true,
+			title: true,
+			description: true,
+			status: true,
+			priority: true,
+			position: true,
+			parentTaskId: true,
+			assigneeId: true,
+			deadline: true,
+			completedAt: true,
+			isArchived: true,
+			createdAt: true,
+			updatedAt: true,
+			deletedAt: true,
 		},
 	});
 };
@@ -48,6 +66,7 @@ export const create = async (args: {
 			completedAt: input.completedAt,
 			createdBy: input.createdBy,
 			organizationId: input.organizationId,
+			isArchived: false,
 		})
 		.returning({
 			id: tasks.id,
@@ -70,6 +89,7 @@ export const update = async (args: {
 			priority: input.priority,
 			position: input.position,
 			parentTaskId: input.parentTaskId,
+			isArchived: input.isArchived,
 			assigneeId: input.assigneeId,
 			deadline: input.deadline,
 			completedAt: input.completedAt,
@@ -108,5 +128,16 @@ export const getIdByPublicId = async (args: { publicId: string }) => {
 		columns: {
 			id: true,
 		},
+	});
+};
+
+export const getLastPosition = async (args: { workspaceId: string }) => {
+	const { workspaceId } = args;
+	return await db.query.tasks.findFirst({
+		where: eq(tasks.organizationId, workspaceId),
+		columns: {
+			position: true,
+		},
+		orderBy: [desc(tasks.position)],
 	});
 };

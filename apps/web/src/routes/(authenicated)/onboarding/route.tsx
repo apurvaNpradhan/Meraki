@@ -33,7 +33,7 @@ export const Route = createFileRoute("/(authenicated)/onboarding")({
 			});
 		}
 		throw redirect({
-			to: "/$slug/dashboard",
+			to: "/$slug/home",
 			params: {
 				slug: session.session.activeOrganization?.slug ?? "",
 			},

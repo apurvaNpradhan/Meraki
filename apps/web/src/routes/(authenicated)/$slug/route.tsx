@@ -53,11 +53,12 @@ export const Route = createFileRoute("/(authenicated)/$slug")({
 
 		return {
 			workspace: targetWorkspace,
+			session: session,
 		};
 	},
 	loader: ({ context }) => {
-		const { workspace } = context;
-		return { workspace };
+		const { workspace, session } = context;
+		return { workspace, session };
 	},
 	component: RouteComponent,
 });

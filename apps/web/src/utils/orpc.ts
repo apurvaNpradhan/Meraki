@@ -1,6 +1,6 @@
-import type { AppRouterClient } from "@base/api/routers/index";
+import type { AppRouterClient } from "@meraki/api/routers/index";
 
-import { env } from "@base/env/web";
+import { env } from "@meraki/env/web";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";

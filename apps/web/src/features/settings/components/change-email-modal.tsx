@@ -48,7 +48,7 @@ export function ChangeEmailModal() {
 		try {
 			const { error } = await authClient.changeEmail({
 				newEmail: values.newEmail,
-				callbackURL: `${env.VITE_BASE_URL}/dashboard`,
+				callbackURL: `${env.VITE_BASE_URL}/home`,
 			});
 
 			if (error) {
