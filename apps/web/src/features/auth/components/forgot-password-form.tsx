@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { env } from "@meraki/env/web";
+import { IconLoader2 } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -93,7 +93,7 @@ export function ForgotPasswordForm({
 							</Field>
 							<Button className="w-full" disabled={isLoading} type="submit">
 								{isLoading ? (
-									<Loader2 className="size-4 animate-spin" />
+									<IconLoader2 className="size-4 animate-spin" />
 								) : (
 									"Reset Password"
 								)}

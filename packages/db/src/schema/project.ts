@@ -9,7 +9,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import type { JSONContent } from "../lib/type";
+import type { SerializedEditorState } from "../lib/type";
 import { organization, user } from "../schema/auth";
 import { timestamps } from "../utils/timestamps";
 import { projectStatuses } from "./project-status";
@@ -26,7 +26,7 @@ export const projects = pgTable(
 			.unique()
 			.default(sql`uuid_generate_v7()`),
 		name: varchar("name", { length: 255 }).notNull(),
-		description: jsonb("description").$type<JSONContent>(),
+		description: jsonb("description").$type<SerializedEditorState>(),
 		summary: varchar("summary", { length: 255 }),
 		priority: integer("priority").default(0).notNull(),
 		statusId: bigint("status_id", { mode: "bigint" })

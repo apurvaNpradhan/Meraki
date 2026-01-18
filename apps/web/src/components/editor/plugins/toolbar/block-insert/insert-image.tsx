@@ -1,0 +1,28 @@
+"use client";
+
+import { IconPhoto } from "@tabler/icons-react";
+
+import { useToolbarContext } from "@/components/editor/context/toolbar-context";
+import { InsertImageDialog } from "@/components/editor/plugins/images-plugin";
+import { SelectItem } from "@/components/ui/select";
+
+export function InsertImage() {
+	const { activeEditor, showModal } = useToolbarContext();
+
+	return (
+		<SelectItem
+			value="image"
+			onPointerUp={(_e) => {
+				showModal("Insert Image", (onClose) => (
+					<InsertImageDialog activeEditor={activeEditor} onClose={onClose} />
+				));
+			}}
+			className=""
+		>
+			<div className="flex items-center gap-1">
+				<IconPhoto className="size-4" />
+				<span>Image</span>
+			</div>
+		</SelectItem>
+	);
+}

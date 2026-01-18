@@ -12,7 +12,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import type { JSONContent } from "../lib/type";
+import type { SerializedEditorState } from "../lib/type";
 import { organization, user } from "../schema/auth";
 import { timestamps } from "../utils/timestamps";
 
@@ -44,7 +44,7 @@ export const tasks = pgTable(
 			.unique()
 			.default(sql`uuid_generate_v7()`),
 		title: varchar("title", { length: 500 }).notNull(),
-		description: jsonb("description").$type<JSONContent>(),
+		description: jsonb("description").$type<SerializedEditorState>(),
 		//Replace with status table later.
 		status: taskStatusEnum("status").default("todo").notNull(),
 		priority: integer("priority").default(0).notNull(),

@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import type { z } from "zod";
-import ContentEditor from "@/components/editor/content-editor";
+import ContentEditor from "@/components/editor/editors/content-editor";
 import { PrioritySelector } from "@/components/priority-selector";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";

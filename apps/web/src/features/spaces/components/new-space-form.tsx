@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import type z from "zod";
-import ContentEditor from "@/components/editor/content-editor";
+import ContentEditor from "@/components/editor/editors/content-editor";
 import { IconAndColorPicker } from "@/components/icon-and-colorpicker";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
@@ -120,10 +120,9 @@ export function NewSpaceForm() {
 					name="description"
 					render={({ field }) => (
 						<ContentEditor
-							initialContent={field.value}
+							initialContent={field.value ?? undefined}
 							onUpdate={field.onChange}
 							placeholder="Add a short description..."
-							className="min-h-20"
 						/>
 					)}
 				/>

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import ContentEditor from "@/components/editor/editors/content-editor";
 import { useModal } from "@/stores/modal.store";
 import { orpc } from "@/utils/orpc";
 
@@ -23,9 +24,13 @@ export function TaskDetailModal({ taskId }: { taskId: string }) {
 	return (
 		<div className="p-6">
 			<h2 className="font-bold text-2xl">{task.title}</h2>
-			{task.description && (
-				<p className="mt-4 text-muted-foreground">{task.description}</p>
-			)}
+			<div className="mt-4">
+				<ContentEditor
+					initialContent={task.description ?? undefined}
+					placeholder="Task description..."
+					className="text-primary/70"
+				/>
+			</div>
 			<div className="mt-6 flex justify-end">
 				<button
 					type="button"

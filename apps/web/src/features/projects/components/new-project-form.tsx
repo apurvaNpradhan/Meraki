@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import type { z } from "zod";
-import ContentEditor from "@/components/editor/content-editor";
+import ContentEditor from "@/components/editor/editors/content-editor";
 import { IconAndColorPicker } from "@/components/icon-and-colorpicker";
 import { PrioritySelector } from "@/components/priority-selector";
 import { Button } from "@/components/ui/button";

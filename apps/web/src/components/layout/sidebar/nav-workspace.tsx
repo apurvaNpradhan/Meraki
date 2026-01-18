@@ -4,9 +4,9 @@ import {
 	IconLogout,
 	IconPlus,
 	IconSettings,
+	IconUserPlus,
 } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
-import { UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,7 +160,7 @@ export function NavWorkspace({
 						render={<Button variant={"outline"} size={"sm"} />}
 						nativeButton={true}
 					>
-						<UserPlus className="size-4 font-medium text-muted-foreground" />
+						<IconUserPlus className="size-4 font-medium text-muted-foreground" />
 						Invite members
 					</DropdownMenuItem>
 				</div>

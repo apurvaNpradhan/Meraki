@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useDebouncedCallback } from "use-debounce";
-import ContentEditor from "@/components/editor/content-editor";
+import ContentEditor from "@/components/editor/editors/content-editor";
 import { IconAndColorPicker } from "@/components/icon-and-colorpicker";
 import { PrioritySelector } from "@/components/priority-selector";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -12,7 +12,6 @@ import {
 	useProject,
 	useUpdateProject,
 } from "@/features/projects/hooks/use-project";
-
 import type { ProjectBySpaceItem } from "@/types/project";
 import { orpc } from "@/utils/orpc";
 import { StatusSelector } from "./status-selector";
@@ -179,9 +178,9 @@ export function ProjectOverview({ id }: { id: string }) {
 			</div>
 
 			<ContentEditor
-				initialContent={data?.description ?? {}}
+				initialContent={data?.description ?? undefined}
 				placeholder="Description..."
-				className="mt-5 text-muted-foreground"
+				className="mt-5 text-primary/70"
 				onUpdate={(content) => {
 					updateProject.mutate({
 						projectPublicId: id,

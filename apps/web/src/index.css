@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "./styles/tiptap.css";
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -62,6 +61,42 @@
 	--shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
 	--tracking-normal: 0em;
 	--spacing: 0.25rem;
+
+	--editor-accent: #ffaa33;
+	--editor-bg: #f8f9fa;
+	--editor-fg: #5c6166;
+	--editor-ui: #8a9199;
+	--editor-tag: #55b4d4;
+	--editor-func: #f2ae49;
+	--editor-entity: #399ee6;
+	--editor-string: #86b300;
+	--editor-regexp: #4cbf99;
+	--editor-markup: #f07171;
+	--editor-keyword: #fa8d3e;
+	--editor-special: #e6ba7e;
+	--editor-comment: #abadb1;
+	--editor-constant: #a37acc;
+	--editor-operator: #ed9366;
+	--editor-error: #e65050;
+	--editor-lsp-parameter: #c788ce;
+	--editor-line: #e7eaed;
+	--editor-panel-bg: #f3f4f5;
+	--editor-panel-shadow: #d3d4d5;
+	--editor-panel-border: #f0f0f0;
+	--editor-gutter-normal: #cccfd3;
+	--editor-gutter-active: #a0a6ac;
+	--editor-selection-bg: #d3e1f5;
+	--editor-selection-inactive: #e7eef7;
+	--editor-selection-border: #e1e1e2;
+	--editor-guide-active: #d2d5d8;
+	--editor-guide-normal: #e4e6e9;
+	--editor-vcs-added: #6cbf43;
+	--editor-vcs-modified: #478acc;
+	--editor-vcs-removed: #ff7383;
+	--editor-vcs-added-bg: #e0e7cd;
+	--editor-vcs-removed-bg: #f9ebe4;
+	--editor-fg-idle: #8a9199;
+	--editor-warning: #fa8d3e;
 }
 
 .dark {
@@ -120,6 +155,42 @@
 	--shadow-xl:
 		0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
 	--shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
+
+	--editor-accent: #e6b450;
+	--editor-bg: #101112;
+	--editor-fg: #bfbdb6;
+	--editor-ui: #565b66;
+	--editor-tag: #39bae6;
+	--editor-func: #ffb454;
+	--editor-entity: #59c2ff;
+	--editor-string: #aad94c;
+	--editor-regexp: #95e6cb;
+	--editor-markup: #f07178;
+	--editor-keyword: #ff8f40;
+	--editor-special: #e6b673;
+	--editor-comment: #636a72;
+	--editor-constant: #d2a6ff;
+	--editor-operator: #f29668;
+	--editor-error: #d95757;
+	--editor-lsp-parameter: #cb9ff8;
+	--editor-line: #1a1e25;
+	--editor-panel-bg: #0f131a;
+	--editor-panel-shadow: #05070a;
+	--editor-panel-border: #191919;
+	--editor-gutter-normal: #454b55;
+	--editor-gutter-active: #626975;
+	--editor-selection-bg: #1b3a5b;
+	--editor-selection-inactive: #122132;
+	--editor-selection-border: #304357;
+	--editor-guide-active: #3c414a;
+	--editor-guide-normal: #1e222a;
+	--editor-vcs-added: #7fd962;
+	--editor-vcs-modified: #73b8ff;
+	--editor-vcs-removed: #f26d78;
+	--editor-vcs-added-bg: #1d2214;
+	--editor-vcs-removed-bg: #2d2220;
+	--editor-fg-idle: #565b66;
+	--editor-warning: #ff8f40;
 }
 
 @theme inline {
@@ -173,6 +244,42 @@
 	--shadow-lg: var(--shadow-lg);
 	--shadow-xl: var(--shadow-xl);
 	--shadow-2xl: var(--shadow-2xl);
+
+	--color-editor-accent: var(--editor-accent);
+	--color-editor-bg: var(--editor-bg);
+	--color-editor-fg: var(--editor-fg);
+	--color-editor-ui: var(--editor-ui);
+	--color-editor-tag: var(--editor-tag);
+	--color-editor-func: var(--editor-func);
+	--color-editor-entity: var(--editor-entity);
+	--color-editor-string: var(--editor-string);
+	--color-editor-regexp: var(--editor-regexp);
+	--color-editor-markup: var(--editor-markup);
+	--color-editor-keyword: var(--editor-keyword);
+	--color-editor-special: var(--editor-special);
+	--color-editor-comment: var(--editor-comment);
+	--color-editor-constant: var(--editor-constant);
+	--color-editor-operator: var(--editor-operator);
+	--color-editor-error: var(--editor-error);
+	--color-editor-lsp-parameter: var(--editor-lsp-parameter);
+	--color-editor-line: var(--editor-line);
+	--color-editor-panel-bg: var(--editor-panel-bg);
+	--color-editor-panel-shadow: var(--editor-panel-shadow);
+	--color-editor-panel-border: var(--editor-panel-border);
+	--color-editor-gutter-normal: var(--editor-gutter-normal);
+	--color-editor-gutter-active: var(--editor-gutter-active);
+	--color-editor-selection-bg: var(--editor-selection-bg);
+	--color-editor-selection-inactive: var(--editor-selection-inactive);
+	--color-editor-selection-border: var(--editor-selection-border);
+	--color-editor-guide-active: var(--editor-guide-active);
+	--color-editor-guide-normal: var(--editor-guide-normal);
+	--color-editor-vcs-added: var(--editor-vcs-added);
+	--color-editor-vcs-modified: var(--editor-vcs-modified);
+	--color-editor-vcs-removed: var(--editor-vcs-removed);
+	--color-editor-vcs-added-bg: var(--editor-vcs-added-bg);
+	--color-editor-vcs-removed-bg: var(--editor-vcs-removed-bg);
+	--color-editor-fg-idle: var(--editor-fg-idle);
+	--color-editor-warning: var(--editor-warning);
 }
 @layer base {
 	* {

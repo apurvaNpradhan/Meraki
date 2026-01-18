@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useDebouncedCallback } from "use-debounce";
-import ContentEditor from "@/components/editor/content-editor";
+import ContentEditor from "@/components/editor/editors/content-editor";
 import { IconAndColorPicker } from "@/components/icon-and-colorpicker";
 import { useSpace, useUpdateSpace } from "@/features/spaces/hooks/use-space";
 
@@ -31,13 +31,13 @@ export function SpaceOverview({ id }: { id: string }) {
 			input: { colorCode: value },
 		});
 	}, 600);
-
+	const [_isHovered, _setIsHovered] = useState(false);
 	if (isPending) return <div>Loading...</div>;
 	if (!data) return <div>Space not found</div>;
 
 	return (
 		<div className="container flex flex-col gap-4">
-			<div className="mt-10 flex flex-row gap-2">
+			<div className="relative mt-10 flex flex-row gap-2">
 				<IconAndColorPicker
 					icon={data.icon}
 					color={data.colorCode}
@@ -67,9 +67,9 @@ export function SpaceOverview({ id }: { id: string }) {
 			</div>
 
 			<ContentEditor
-				initialContent={data?.description ?? {}}
+				initialContent={data?.description ?? undefined}
 				placeholder="Description..."
-				className="mt-5 text-muted-foreground"
+				className="mt-5 text-primary/70"
 				onUpdate={(content) => {
 					updateSpace.mutate({
 						spacePublicId: id,

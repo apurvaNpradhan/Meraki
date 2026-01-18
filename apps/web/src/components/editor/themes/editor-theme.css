@@ -1,0 +1,112 @@
+.EditorTheme__code {
+	background-color: var(--editor-bg);
+	color: var(--editor-fg);
+	font-family: var(--font-mono);
+	display: block;
+	padding: 8px 8px 8px 52px;
+	line-height: 1.53;
+	font-size: 13px;
+	margin: 0;
+	margin-top: 8px;
+	margin-bottom: 8px;
+	overflow-x: auto;
+	border: 1px solid var(--editor-line);
+	position: relative;
+	border-radius: 8px;
+	tab-size: 2;
+}
+.EditorTheme__code:before {
+	content: attr(data-gutter);
+	position: absolute;
+	background-color: transparent;
+	border-right: 1px solid var(--editor-line);
+	left: 0;
+	top: 0;
+	padding: 8px;
+	color: var(--editor-gutter-normal);
+	white-space: pre-wrap;
+	text-align: right;
+	min-width: 25px;
+}
+.EditorTheme__table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	overflow: auto;
+	table-layout: fixed;
+	width: 100%;
+	margin: 0px 0px 30px 0px;
+}
+.EditorTheme__tokenComment {
+	color: var(--editor-comment);
+	font-style: italic;
+}
+.EditorTheme__tokenPunctuation {
+	color: var(--editor-ui);
+}
+.EditorTheme__tokenProperty {
+	color: var(--editor-constant);
+}
+.EditorTheme__tokenSelector {
+	color: var(--editor-tag);
+}
+.EditorTheme__tokenOperator {
+	color: var(--editor-operator);
+}
+.EditorTheme__tokenAttr {
+	color: var(--editor-keyword);
+}
+.EditorTheme__tokenVariable {
+	color: var(--editor-entity);
+}
+.EditorTheme__tokenFunction {
+	color: var(--editor-func);
+}
+.EditorTheme__tokenString {
+	color: var(--editor-string);
+}
+.EditorTheme__tokenKeyword {
+	color: var(--editor-keyword);
+}
+.EditorTheme__tokenRegex {
+	color: var(--editor-regexp);
+}
+.EditorTheme__tokenMarkup {
+	color: var(--editor-markup);
+}
+.EditorTheme__tokenSpecial {
+	color: var(--editor-special);
+}
+.EditorTheme__tokenTag {
+	color: var(--editor-tag);
+}
+.EditorTheme__tokenConstant {
+	color: var(--editor-constant);
+}
+
+.Collapsible__container {
+	background-color: var(--background);
+	border: 1px solid #ccc;
+	border-radius: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.Collapsible__title {
+	padding: 0.25rem;
+	padding-left: 1rem;
+	position: relative;
+	font-weight: bold;
+	outline: none;
+	cursor: pointer;
+	list-style-type: disclosure-closed;
+	list-style-position: inside;
+}
+
+.Collapsible__title p {
+	display: inline-flex;
+}
+.Collapsible__title::marker {
+	color: lightgray;
+}
+.Collapsible__container[open] > .Collapsible__title {
+	list-style-type: disclosure-open;
+}

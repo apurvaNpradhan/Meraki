@@ -1,6 +1,6 @@
+import { IconCalendar } from "@tabler/icons-react";
 import { parseDate } from "chrono-node";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,7 @@ export function DatePicker({
 							className,
 						)}
 					>
-						<CalendarIcon className="mr-2 h-4 w-4" />
+						<IconCalendar className="mr-2 h-4 w-4" />
 						{date ? format(date, "PPP") : <span>{placeholder}</span>}
 					</Button>
 				}
