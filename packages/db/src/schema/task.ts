@@ -6,7 +6,6 @@ import {
 	index,
 	integer,
 	jsonb,
-	pgEnum,
 	pgTable,
 	timestamp,
 	uuid,
@@ -15,23 +14,9 @@ import {
 import type { SerializedEditorState } from "../lib/type";
 import { organization, user } from "../schema/auth";
 import { timestamps } from "../utils/timestamps";
+import { projects } from "./project";
+import { statuses } from "./status";
 
-/**
- * Task status (simple MVP)
- * Can later be replaced with workflow/status tables
- */
-export const taskStatuses = [
-	"todo",
-	"in_progress",
-	"done",
-	"canceled",
-] as const;
-export type TaskStatus = (typeof taskStatuses)[number];
-export const taskStatusEnum = pgEnum("task_status", taskStatuses);
-
-/**
- * Tasks
- */
 export const tasks = pgTable(
 	"task",
 	{
@@ -45,8 +30,13 @@ export const tasks = pgTable(
 			.default(sql`uuid_generate_v7()`),
 		title: varchar("title", { length: 500 }).notNull(),
 		description: jsonb("description").$type<SerializedEditorState>(),
-		//Replace with status table later.
-		status: taskStatusEnum("status").default("todo").notNull(),
+		projectId: bigint("project_id", { mode: "bigint" }).references(
+			() => projects.id,
+		),
+		statusId: bigint("status_id", { mode: "bigint" }).references(
+			() => statuses.id,
+			{ onDelete: "set null" },
+		),
 		priority: integer("priority").default(0).notNull(),
 		position: varchar("position", { length: 32 }).notNull(),
 		isArchived: boolean("is_archived").default(false).notNull(),
@@ -87,7 +77,7 @@ export const tasks = pgTable(
 	(table) => [
 		index("task_parentTaskId_idx").on(table.parentTaskId),
 		index("task_assigneeId_idx").on(table.assigneeId),
-		index("task_status_idx").on(table.status),
+		index("task_status_idx").on(table.statusId),
 		index("task_organizationId_idx").on(table.organizationId),
 	],
 ).enableRLS();

@@ -3,35 +3,35 @@ export const DEFAULT_PROJECT_STATUSES = [
 		name: "Backlog",
 		type: "backlog",
 		position: "a",
-		colorCode: "#94a3b8",
+		colorCode: "#B3B1AD",
 		description: null,
 	},
 	{
 		name: "Planned",
 		type: "planned",
 		position: "b",
-		colorCode: "#e2e8f0", // slate-200
+		colorCode: "#FFB454",
 		description: null,
 	},
 	{
 		name: "In Progress",
 		type: "in_progress",
 		position: "c",
-		colorCode: "#3b82f6", // blue-500
+		colorCode: "#59C2FF",
 		description: null,
 	},
 	{
 		name: "Completed",
 		type: "completed",
 		position: "d",
-		colorCode: "#22c55e", // green-500
+		colorCode: "#C2D94C",
 		description: null,
 	},
 	{
 		name: "Canceled",
 		type: "canceled",
 		position: "e",
-		colorCode: "#ef4444", // red-500
+		colorCode: "#F07178",
 		description: null,
 	},
 ] as const;

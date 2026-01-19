@@ -1,6 +1,7 @@
 import * as projectRepo from "@meraki/db/repository/project.repo";
 import * as projectStatusRepo from "@meraki/db/repository/project-status.repo";
 import * as spaceRepo from "@meraki/db/repository/space.repo";
+import * as statusRepo from "@meraki/db/repository/status.repo";
 import { ORPCError } from "@orpc/client";
 import { generateKeyBetween } from "fractional-indexing";
 import z from "zod";
@@ -8,12 +9,51 @@ import { protectedProcedure } from "..";
 import { ProjectInsertInput, ProjectUpdateInput } from "../types/project";
 
 export const projectRouter = {
+	getOverview: protectedProcedure
+		.input(z.object({ projectPublicId: z.string() }))
+		.handler(async ({ input, context }) => {
+			const project = await projectRepo.getProjectIdByPublicId(
+				input.projectPublicId,
+			);
+			if (!project) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `project with public ID ${input.projectPublicId} not found`,
+				});
+			}
+			const result = await projectRepo.getProjectOverview(
+				context.workspace.id,
+				project.id, // Fixed: accessing id directly
+			);
+
+			if (!result) {
+				// Should not happen if project exists, but safe guard
+				throw new ORPCError("NOT_FOUND", {
+					message: "project overview not found",
+				});
+			}
+
+			const statuses = await statusRepo.getAllByProjectId(project.id);
+
+			return { ...result, statuses };
+		}),
 	all: protectedProcedure
 		.output(
 			z.custom<Awaited<ReturnType<typeof projectRepo.getAllByWorkspaceId>>>(),
 		)
 		.handler(async ({ input, context }) => {
 			const projects = projectRepo.getAllByWorkspaceId(context.workspace.id);
+			return projects;
+		}),
+	allBySpaceId: protectedProcedure
+		.input(z.object({ spacePublicId: z.string() }))
+		.handler(async ({ input, context }) => {
+			const spaceId = await spaceRepo.getIdByPublicId(input.spacePublicId);
+			if (!spaceId) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `space with public ID ${input.spacePublicId} not found`,
+				});
+			}
+			const projects = projectRepo.getAllBySpaceId(spaceId.id);
 			return projects;
 		}),
 	list: protectedProcedure
@@ -104,6 +144,16 @@ export const projectRouter = {
 					spaceId: space.id,
 				},
 			});
+			if (input.statuses.length > 0 && result) {
+				const statusInputs = input.statuses.map((status) => {
+					return {
+						...status,
+						projectId: result.id,
+						createdBy: userId,
+					};
+				});
+				await statusRepo.bulkCreate(statusInputs);
+			}
 
 			return result;
 		}),

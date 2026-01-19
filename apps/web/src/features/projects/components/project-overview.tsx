@@ -1,6 +1,5 @@
 import { IconCalendar, IconCircleDashed, IconFlag } from "@tabler/icons-react";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useDebouncedCallback } from "use-debounce";
@@ -13,15 +12,13 @@ import {
 	useUpdateProject,
 } from "@/features/projects/hooks/use-project";
 import type { ProjectBySpaceItem } from "@/types/project";
-import { orpc } from "@/utils/orpc";
 import { StatusSelector } from "./status-selector";
 
 export function ProjectOverview({ id }: { id: string }) {
-	const { data, isPending } = useProject(id);
-	const projectStatuses = useSuspenseQuery(
-		orpc.projectStatus.all.queryOptions(),
-	);
-	const updateProject = useUpdateProject({});
+	const { data } = useProject(id);
+	const updateProject = useUpdateProject({
+		spacePublicId: data.space?.publicId,
+	});
 	const [name, setName] = useState("");
 	const [_color, setColor] = useState("");
 	const [summary, setSummary] = useState("");
@@ -54,7 +51,6 @@ export function ProjectOverview({ id }: { id: string }) {
 		});
 	}, 600);
 
-	if (isPending) return <div>Loading...</div>;
 	if (!data) return <div>Project not found</div>;
 
 	const properties = [
@@ -64,7 +60,6 @@ export function ProjectOverview({ id }: { id: string }) {
 			content: (
 				<StatusSelector
 					project={data as unknown as ProjectBySpaceItem}
-					statuses={projectStatuses.data}
 					projectPublicId={id}
 					spacePublicId={data.space?.publicId}
 					showLabel={true}
@@ -124,25 +119,24 @@ export function ProjectOverview({ id }: { id: string }) {
 	];
 
 	return (
-		<div className="container flex flex-col gap-4">
-			<div className="mt-10 flex flex-row gap-2">
-				<IconAndColorPicker
-					icon={data.icon}
-					color={data.colorCode}
-					variant="soft"
-					iconSize={30}
-					onIconChange={(icon) =>
-						updateProject.mutate({
-							projectPublicId: id,
-							icon,
-						})
-					}
-					onColorChange={(color) => {
-						setColor(color);
-						debouncedUpdateColor(color);
-					}}
-				/>
-
+		<div className="container mt-10 flex flex-col gap-4">
+			<IconAndColorPicker
+				icon={data.icon}
+				color={data.colorCode}
+				variant="soft"
+				iconSize={30}
+				onIconChange={(icon) =>
+					updateProject.mutate({
+						projectPublicId: id,
+						icon,
+					})
+				}
+				onColorChange={(color) => {
+					setColor(color);
+					debouncedUpdateColor(color);
+				}}
+			/>
+			<div className="flex flex-row gap-2">
 				<TextareaAutosize
 					value={name}
 					onChange={(e) => {
@@ -178,6 +172,7 @@ export function ProjectOverview({ id }: { id: string }) {
 			</div>
 
 			<ContentEditor
+				key={id}
 				initialContent={data?.description ?? undefined}
 				placeholder="Description..."
 				className="mt-5 text-primary/70"

@@ -16,26 +16,33 @@ import {
 	ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
 import { useModal } from "@/stores/modal.store";
-import { useCreateSpace, useSpaces } from "../hooks/use-space";
+import { useCreateSpace } from "../hooks/use-space";
 
 const formSchema = InsertSpaceInput;
 type FormValues = z.infer<typeof formSchema>;
 
 export function NewSpaceForm() {
-	const { refetch } = useSpaces();
-	const { close } = useModal();
+	const { close, setDirty } = useModal();
 	const navigate = useNavigate();
 	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
-	const { handleSubmit, control } = useForm<FormValues>({
+	const {
+		handleSubmit,
+		control,
+		formState: { isDirty },
+	} = useForm<FormValues>({
 		mode: "onChange",
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			name: "",
 			description: {},
-			icon: "IconFolder",
-			colorCode: "#98BB6C",
+			icon: "IconInfinity",
+			colorCode: "#C2D94C",
 		},
 	});
+
+	useEffect(() => {
+		setDirty(isDirty);
+	}, [isDirty, setDirty]);
 	const createSpace = useCreateSpace();
 
 	const onSubmit = (data: FormValues) => {
@@ -46,9 +53,6 @@ export function NewSpaceForm() {
 					navigate({
 						to: "/$slug/spaces/$id",
 						params: { slug: workspace.slug, id: result.publicId },
-						search: {
-							view: "overview",
-						},
 					});
 				}
 			},

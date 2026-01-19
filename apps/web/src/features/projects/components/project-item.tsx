@@ -17,34 +17,32 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
-
 import { cn } from "@/lib/utils";
-import type { ProjectBySpaceItem, ProjectStatus } from "@/types/project";
-import { useDeleteProject, useUpdateProject } from "../hooks/use-project";
+import { useModal } from "@/stores/modal.store";
+import type { ProjectBySpaceItem } from "@/types/project";
+import { useUpdateProject } from "../hooks/use-project";
 import { StatusSelector } from "./status-selector";
 
 interface ProjectItemProps {
 	project: ProjectBySpaceItem;
 	spacePublicId: string;
-	statuses: ProjectStatus[];
 	className?: string;
 }
 
 export function ProjectItem({
 	project,
 	spacePublicId,
-	statuses,
 	className,
 }: ProjectItemProps) {
 	const updateProject = useUpdateProject({ spacePublicId });
-	const deleteProject = useDeleteProject();
+	const { open } = useModal();
 	const navigate = useNavigate();
 	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
 
 	return (
 		<Item
 			className={cn(
-				"group/project-item p-1 transition-all hover:bg-accent/40",
+				"group/project-item rounded-none p-2 transition-all hover:bg-accent/40",
 				className,
 			)}
 			variant="default"
@@ -77,9 +75,6 @@ export function ProjectItem({
 					navigate({
 						to: "/$slug/projects/$id",
 						params: { slug: workspace.slug, id: project.publicId },
-						search: {
-							view: "overview",
-						},
 					})
 				}
 				onKeyDown={(e) => {
@@ -87,9 +82,6 @@ export function ProjectItem({
 						navigate({
 							to: "/$slug/projects/$id",
 							params: { slug: workspace.slug, id: project.publicId },
-							search: {
-								view: "overview",
-							},
 						});
 					}
 				}}
@@ -101,7 +93,6 @@ export function ProjectItem({
 				<div className="flex items-center">
 					<StatusSelector
 						project={project}
-						statuses={statuses}
 						spacePublicId={spacePublicId}
 						className="w-fit"
 						projectPublicId={project.publicId}
@@ -137,8 +128,16 @@ export function ProjectItem({
 
 							<DropdownMenuItem
 								className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
-								onSelect={() =>
-									deleteProject.mutate({ projectPublicId: project.publicId })
+								onClick={() =>
+									open({
+										type: "DELETE_PROJECT",
+										data: {
+											project: {
+												...project,
+												spacePublicId,
+											},
+										},
+									})
 								}
 							>
 								<IconTrash className="mr-2 h-4 w-4" />
@@ -147,6 +146,22 @@ export function ProjectItem({
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
+			</ItemActions>
+		</Item>
+	);
+}
+
+export function ProjectItemSkeleton() {
+	return (
+		<Item className="rounded-none border-none p-2">
+			<ItemMedia>
+				<div className="h-5 w-5 animate-pulse rounded bg-muted" />
+			</ItemMedia>
+			<ItemContent>
+				<div className="h-4 w-48 animate-pulse rounded bg-muted" />
+			</ItemContent>
+			<ItemActions>
+				<div className="h-8 w-24 animate-pulse rounded bg-muted" />
 			</ItemActions>
 		</Item>
 	);

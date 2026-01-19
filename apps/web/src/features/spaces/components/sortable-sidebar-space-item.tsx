@@ -1,8 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as TablerIcons from "@tabler/icons-react";
-import { IconBox } from "@tabler/icons-react";
 import { useLoaderData, useNavigate } from "@tanstack/react-router";
+import { RenderIcon } from "@/components/icon-and-colorpicker";
 import { Button } from "@/components/ui/button";
 import {
 	ContextMenu,
@@ -38,17 +38,12 @@ export default function SortableSidebarSpaceItem({
 		transition,
 		touchAction: "none",
 	};
-	const { open } = useModal();
-	const Icon = data.icon
-		? (TablerIcons[data.icon as keyof typeof TablerIcons] as React.ElementType)
-		: IconBox;
-
+	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
 	const _isActive = useRouteActive();
 	const navigate = useNavigate();
-
 	const { state } = useSidebar();
 	const isCollapsed = state === "collapsed";
-	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
+	const { open } = useModal();
 
 	return (
 		<ContextMenu>
@@ -59,18 +54,16 @@ export default function SortableSidebarSpaceItem({
 				{...listeners}
 			>
 				<ContextMenuTrigger className="group/item flex w-full items-center gap-[2px]">
-					<div className="group/menu-item relative flex flex-1 flex-row items-center justify-between rounded-md p-0 p-1 text-left text-sm hover:bg-accent/40">
-						<button
-							type="button"
+					<div className="group/menu-item relative flex flex-1 flex-row items-center justify-between rounded-md p-1 text-left text-sm hover:bg-accent/40">
+						<Button
+							variant={"ghost"}
+							size={"icon-xs"}
 							data-slot="sidebar-menu-button"
 							data-sidebar="menu-button"
 							onClick={() => {
 								navigate({
 									to: "/$slug/spaces/$id",
 									params: { slug: workspace.slug, id: data.publicId },
-									search: {
-										view: "overview",
-									},
 								});
 							}}
 							className={cn(
@@ -78,18 +71,13 @@ export default function SortableSidebarSpaceItem({
 								isCollapsed && "justify-center",
 							)}
 						>
-							{Icon ? (
-								<Icon
-									size={16}
-									style={{ color: data.colorCode ?? undefined }}
-								/>
-							) : (
-								<IconBox size={16} />
-							)}
+							<RenderIcon icon={data.icon} color={data.colorCode} size={16} />
 							{!isCollapsed && (
-								<span className="line-clamp-1 font-medium">{data.name}</span>
+								<span className="line-clamp-1 truncate font-medium">
+									{data.name}
+								</span>
 							)}
-						</button>
+						</Button>
 						{!isCollapsed && (
 							<DropdownMenu>
 								<DropdownMenuTrigger

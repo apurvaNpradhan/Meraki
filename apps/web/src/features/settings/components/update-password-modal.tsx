@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconEye, IconEyeOff, IconLoader2 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -30,7 +30,7 @@ const passwordSchema = z
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export function UpdatePasswordModal() {
-	const { close } = useModal();
+	const { close, setDirty } = useModal();
 	const [isLoading, setIsLoading] = useState(false);
 	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 	const [showNewPassword, setShowNewPassword] = useState(false);
@@ -43,6 +43,10 @@ export function UpdatePasswordModal() {
 			confirmPassword: "",
 		},
 	});
+
+	useEffect(() => {
+		setDirty(form.formState.isDirty);
+	}, [form.formState.isDirty, setDirty]);
 
 	async function onSubmit(values: PasswordFormValues) {
 		setIsLoading(true);

@@ -1,25 +1,16 @@
-import { IconFilter } from "@tabler/icons-react";
+import { IconChevronDown, IconChevronUp, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ProjectItem } from "@/features/projects/components/project-item";
 import { getStatusIcon } from "@/features/projects/components/status-selector";
-import { useSpace } from "@/features/spaces/hooks/use-space";
+import { useProjectsBySpaceId } from "@/features/projects/hooks/use-project";
 import { useModal } from "@/stores/modal.store";
 import type { ProjectBySpaceItem } from "@/types/project";
 import { orpc } from "@/utils/orpc";
@@ -27,15 +18,15 @@ import { orpc } from "@/utils/orpc";
 type GroupBy = "status" | "priority" | "none";
 
 export function SpaceProjects({ id }: { id: string }) {
-	const { data, isPending } = useSpace(id);
+	const { data } = useProjectsBySpaceId(id);
 	const projectStatuses = useSuspenseQuery(
 		orpc.projectStatus.all.queryOptions(),
 	);
-	const [groupBy, setGroupBy] = useState<GroupBy>("status");
+	const [groupBy, _setGroupBy] = useState<GroupBy>("status");
 	const { open } = useModal();
 
 	const groupedItems = useMemo(() => {
-		if (!data?.projects || !projectStatuses.data) return {};
+		if (!data || !projectStatuses.data) return {};
 
 		const groups: Record<string, ProjectBySpaceItem[]> = {};
 
@@ -44,7 +35,7 @@ export function SpaceProjects({ id }: { id: string }) {
 				groups[status.publicId] = [];
 			}
 			groups.uncategorized = [];
-			for (const project of data.projects) {
+			for (const project of data) {
 				const key = project.projectStatus?.publicId ?? "uncategorized";
 				if (!groups[key]) groups[key] = [];
 				groups[key].push(project);
@@ -53,13 +44,13 @@ export function SpaceProjects({ id }: { id: string }) {
 			for (let i = 0; i <= 4; i++) {
 				groups[i.toString()] = [];
 			}
-			for (const project of data.projects) {
+			for (const project of data) {
 				const key = (project.priority ?? 0).toString();
 				if (!groups[key]) groups[key] = [];
 				groups[key].push(project);
 			}
 		} else {
-			groups.all = [...data.projects];
+			groups.all = [...data];
 		}
 
 		// Remove empty groups as requested
@@ -74,7 +65,7 @@ export function SpaceProjects({ id }: { id: string }) {
 		}
 
 		return filteredGroups;
-	}, [data?.projects, projectStatuses.data, groupBy]);
+	}, [data, projectStatuses.data, groupBy]);
 
 	const sortedGroupKeys = useMemo(() => {
 		return Object.keys(groupedItems).sort((a, b) => {
@@ -91,39 +82,14 @@ export function SpaceProjects({ id }: { id: string }) {
 		});
 	}, [groupedItems, groupBy, projectStatuses.data]);
 
-	if (isPending) return <div>Loading...</div>;
-	if (!data) return <div>Space not found</div>;
+	if (!data) return null;
 
-	const projects = data.projects;
+	const projects = data;
 
 	return (
-		<div className="container flex flex-col gap-4">
-			<div className="mt-10 flex flex-row gap-2">
-				<span className="font-bold text-3xl text-foreground/90">Projects</span>
-			</div>
-
-			<div className="flex flex-col gap-3">
-				<div className="flex flex-row items-center justify-end">
-					<div className="flex flex-row items-end gap-2">
-						<ViewSettingsSelector
-							groupBy={groupBy}
-							onGroupByChange={setGroupBy}
-						/>
-						<Button
-							variant={"outline"}
-							size={"sm"}
-							onClick={() =>
-								open({
-									type: "CREATE_PROJECT",
-									data: { spacePublicId: id },
-									modalSize: "lg",
-								})
-							}
-						>
-							New Project
-						</Button>
-					</div>
-				</div>
+		<div className="flex w-full flex-col">
+			<div className="flex flex-col">
+				<div className="flex flex-row items-center justify-end" />
 
 				{projects?.length === 0 ? (
 					<div className="flex h-32 items-center justify-center rounded-lg border-2 border-muted-foreground/20 border-dashed">
@@ -132,7 +98,11 @@ export function SpaceProjects({ id }: { id: string }) {
 						</span>
 					</div>
 				) : (
-					<div className="flex flex-col gap-6">
+					<Accordion
+						className="flex flex-col"
+						multiple
+						defaultValue={sortedGroupKeys}
+					>
 						{sortedGroupKeys.map((groupKey) => {
 							const groupProjects = groupedItems[groupKey] ?? [];
 							let label = groupKey;
@@ -160,80 +130,92 @@ export function SpaceProjects({ id }: { id: string }) {
 								label = "All Projects";
 							}
 
+							const status =
+								groupBy === "status"
+									? projectStatuses.data.find((s) => s.publicId === groupKey)
+									: null;
+
 							return (
-								<Collapsible key={groupKey} defaultOpen className="space-y-1">
-									<CollapsibleTrigger className="flex items-center gap-2 px-1 pb-1">
-										{icon}
-										<h3 className="font-semibold text-foreground/70 text-sm">
-											{label}
-										</h3>
-										<span className="text-muted-foreground text-xs">
-											{groupProjects.length}
-										</span>
-									</CollapsibleTrigger>
-									<CollapsibleContent className="flex flex-col gap-1">
+								<AccordionItem
+									className="w-full border-none"
+									value={groupKey}
+									key={groupKey}
+								>
+									<AccordionTrigger
+										className="flex w-full flex-row items-center justify-between rounded-none border-none bg-background p-2 transition-colors hover:bg-muted hover:no-underline data-[state=open]:bg-muted"
+										style={{
+											borderLeft: status?.colorCode
+												? `6px solid ${status.colorCode}`
+												: undefined,
+											backgroundColor: status?.colorCode
+												? `color-mix(in srgb, ${status.colorCode} 6%, var(--background))`
+												: undefined,
+										}}
+									>
+										<div className="flex items-center gap-2">
+											<Button
+												variant={"ghost"}
+												size="icon-sm"
+												className="flex items-center hover:text-primary"
+											>
+												<IconChevronDown
+													data-slot="accordion-trigger-icon"
+													className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
+												/>
+												<IconChevronUp
+													data-slot="accordion-trigger-icon"
+													className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
+												/>
+											</Button>
+
+											{icon}
+											<h3 className="font-semibold text-foreground/70 text-sm">
+												{label}
+											</h3>
+											<span className="text-muted-foreground text-xs">
+												{groupProjects.length}
+											</span>
+										</div>
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											onClick={(e) => {
+												e.stopPropagation();
+												open({
+													type: "CREATE_PROJECT",
+													data: {
+														spacePublicId: id,
+														data: {
+															...(groupBy === "status" && {
+																projectStatusPublicId: groupKey,
+															}),
+															...(groupBy === "priority" && {
+																priority: Number.parseInt(groupKey, 10),
+															}),
+														},
+													},
+													modalSize: "lg",
+												});
+											}}
+										>
+											<IconPlus />
+										</Button>
+									</AccordionTrigger>
+									<AccordionContent className="flex flex-col p-0">
 										{groupProjects.map((project) => (
 											<ProjectItem
 												key={project.publicId}
 												project={project}
 												spacePublicId={id}
-												statuses={projectStatuses.data}
 											/>
 										))}
-									</CollapsibleContent>
-								</Collapsible>
+									</AccordionContent>
+								</AccordionItem>
 							);
 						})}
-					</div>
+					</Accordion>
 				)}
 			</div>
 		</div>
-	);
-}
-
-function ViewSettingsSelector({
-	groupBy,
-	onGroupByChange,
-}: {
-	groupBy: GroupBy;
-	onGroupByChange: (v: GroupBy) => void;
-}) {
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button
-						variant="ghost"
-						size="sm"
-						className="gap-2 text-muted-foreground hover:text-foreground"
-					>
-						<IconFilter className="h-4 w-4" />
-						<span>View</span>
-					</Button>
-				}
-			/>
-			<DropdownMenuContent align="end" className="w-48">
-				<DropdownMenuSub>
-					<DropdownMenuSubTrigger>
-						<IconFilter className="mr-2 h-4 w-4" />
-						Group by
-					</DropdownMenuSubTrigger>
-					<DropdownMenuSubContent>
-						<DropdownMenuRadioGroup
-							value={groupBy}
-							onValueChange={(v) => onGroupByChange(v as GroupBy)}
-						>
-							<DropdownMenuRadioItem value="none">None</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="status">
-								Status
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="priority">
-								Priority
-							</DropdownMenuRadioItem>
-						</DropdownMenuRadioGroup>
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
-			</DropdownMenuContent>
-		</DropdownMenu>
 	);
 }

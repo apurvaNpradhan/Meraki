@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -13,6 +14,9 @@ export const MODAL_TYPES = [
 	"CREATE_SPACE",
 	"DELETE_SPACE",
 	"CREATE_PROJECT",
+	"SHOW_PROJECT_TEMPLATES",
+	"DELETE_PROJECT",
+	"DELETE_TASK",
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
@@ -24,6 +28,7 @@ export interface ModalInstance {
 	description?: string;
 	modalSize?: "sm" | "md" | "lg" | "fullscreen";
 	closeOnClickOutside?: boolean;
+	isDirty?: boolean;
 }
 
 export type ModalConfig = Omit<ModalInstance, "id"> & {
@@ -105,6 +110,18 @@ export const useModalStore = create<ModalStore>()(
 export const useModal = () => {
 	const stack = useModalStore((state) => state.stack);
 	const top = stack[stack.length - 1];
+	const update = useModalStore((state) => state.update);
+
+	const setDirty = useCallback(
+		(isDirty: boolean) => {
+			const currentStack = useModalStore.getState().stack;
+			const currentTop = currentStack[currentStack.length - 1];
+			if (currentTop && currentTop.isDirty !== isDirty) {
+				update(currentTop.id, { isDirty });
+			}
+		},
+		[update],
+	);
 
 	return {
 		isOpen: stack.length > 0,
@@ -114,6 +131,7 @@ export const useModal = () => {
 		close: useModalStore((state) => state.close),
 		closeAll: useModalStore((state) => state.closeAll),
 		replace: useModalStore((state) => state.replace),
-		update: useModalStore((state) => state.update),
+		update,
+		setDirty,
 	};
 };

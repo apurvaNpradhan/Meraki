@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InsertTaskInput } from "@meraki/api/types";
+import { InsertTaskInput, type UpdateTaskType } from "@meraki/api/types";
+import type { Status } from "@meraki/api/types/status";
 import { IconChevronRight, IconLoader2 } from "@tabler/icons-react";
-import { useMutation } from "@tanstack/react-query";
 import { useLoaderData } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -20,49 +20,68 @@ import {
 } from "@/components/ui/responsive-modal";
 import { Switch } from "@/components/ui/switch";
 import { useModal } from "@/stores/modal.store";
-import { orpc, queryClient } from "@/utils/orpc";
+import { useCreateTask } from "../hooks/use-tasks";
 import { TaskDatePicker } from "./task-date-picker";
+import { TaskStatusSelector } from "./task-status-selector";
 
 type TaskFormValues = z.input<typeof InsertTaskInput>;
 
-export function NewTaskModal() {
-	const { close } = useModal();
+export function NewTaskModal({
+	data,
+	statuses,
+	projectPublicId,
+}: {
+	data?: UpdateTaskType;
+	statuses?: Status[];
+	projectPublicId?: string;
+}) {
+	const { close, setDirty } = useModal();
 	const [createMore, setCreateMore] = useState(false);
-	const createTask = useMutation(
-		orpc.task.create.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries(orpc.task.all.queryOptions());
-				if (!createMore) {
-					toast.success("Task created successfully");
-					close();
-				}
-				form.reset(defaultValues);
-			},
-			onError: (error: Error) => {
-				toast.error(error.message || "Failed to create task");
-			},
-		}),
-	);
+	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
+
+	const createTask = useCreateTask({
+		workspaceId: workspace.id,
+		projectPublicId,
+	});
+
 	const defaultValues: TaskFormValues = {
 		title: "",
-		description: {},
-		priority: 0,
+		description: undefined,
+		statusPublicId:
+			data?.statusPublicId ?? statuses?.[0]?.publicId ?? undefined,
+		priority: data?.priority ?? 0,
+		projectPublicId: projectPublicId ?? undefined,
 	};
+
 	const form = useForm<TaskFormValues>({
 		resolver: zodResolver(InsertTaskInput),
-		defaultValues: {
-			title: "",
-			description: {},
-			priority: 0,
-		},
+		defaultValues,
 	});
 
 	const onSubmit = (values: TaskFormValues) => {
-		createTask.mutate({
-			input: values,
-		});
+		createTask.mutate(
+			{
+				input: values,
+			},
+			{
+				onSuccess: () => {
+					if (!createMore) {
+						toast.success("Task created successfully");
+						close();
+					} else {
+						form.reset(defaultValues);
+					}
+				},
+				onError: (error: Error) => {
+					toast.error(error.message || "Failed to create task");
+				},
+			},
+		);
 	};
-	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
+	useEffect(() => {
+		setDirty(form.formState.isDirty);
+	}, [form.formState.isDirty, setDirty]);
+
 	return (
 		<div className="flex w-full flex-col space-y-4 p-1">
 			<ResponsiveModalHeader>
@@ -109,25 +128,30 @@ export function NewTaskModal() {
 						render={({ field }) => (
 							<ContentEditor
 								placeholder="Add description..."
-								initialContent={field.value ?? {}}
+								initialContent={field.value ?? undefined}
 								onUpdate={field.onChange}
 							/>
 						)}
 					/>
 				</div>
 
-				<div className="mt-4 flex flex-row items-center gap-2 px-1">
-					<Controller
-						control={form.control}
-						name="deadline"
-						render={({ field }) => (
-							<TaskDatePicker
-								date={field.value ? new Date(field.value) : undefined}
-								className="w-fit border border-accent bg-accent/50"
-								onSelect={(date) => field.onChange(date)}
-							/>
-						)}
-					/>
+				<div className="mt-4 flex flex-row flex-wrap items-center gap-2 px-1">
+					{statuses && statuses.length > 0 && (
+						<Controller
+							control={form.control}
+							name="statusPublicId"
+							render={({ field }) => (
+								<TaskStatusSelector
+									statuses={statuses}
+									selectedStatusId={field.value ?? undefined}
+									onStatusChange={field.onChange}
+									className="w-fit border-accent bg-accent/50"
+									showLabel
+								/>
+							)}
+						/>
+					)}
+
 					<Controller
 						control={form.control}
 						name="priority"
@@ -137,6 +161,18 @@ export function NewTaskModal() {
 								className="w-fit border-accent bg-accent/50"
 								value={field.value ?? 0}
 								onPriorityChange={field.onChange}
+							/>
+						)}
+					/>
+
+					<Controller
+						control={form.control}
+						name="deadline"
+						render={({ field }) => (
+							<TaskDatePicker
+								date={field.value ? new Date(field.value) : undefined}
+								className="w-fit border border-accent bg-accent/50"
+								onSelect={(date) => field.onChange(date)}
 							/>
 						)}
 					/>

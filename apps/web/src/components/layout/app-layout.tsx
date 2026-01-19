@@ -48,7 +48,7 @@ export default function MainLayout({
 								: height[headersNumber as keyof typeof height],
 						)}
 					>
-						<div className="mx-auto w-full md:max-w-6xl">{children}</div>
+						<div className="w-full">{children}</div>
 					</div>
 				</div>
 			</div>

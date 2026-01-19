@@ -69,7 +69,7 @@ function RouteComponent() {
 		if (!orgName || !orgSlug) {
 			navigate({ to: "/onboarding/workspace" });
 		}
-	}, [orgName, orgSlug, navigate]);
+	}, [navigate, orgName, orgSlug]);
 	return (
 		<div className="flex h-svh w-full items-center justify-center">
 			<Card className="w-full max-w-md">

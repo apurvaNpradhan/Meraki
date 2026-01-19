@@ -1,7 +1,5 @@
-import type { InsertSpaceType, UpdateSpaceType } from "@meraki/api/types/space";
 import * as reactQuery from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { SidebarSpace } from "@/types/space";
 import { orpc } from "@/utils/orpc";
 
 export type Space = {
@@ -13,13 +11,17 @@ export type Space = {
 };
 
 export function useSpaces() {
-	return reactQuery.useQuery(orpc.space.all.queryOptions({}));
+	return reactQuery.useSuspenseQuery(orpc.space.all.queryOptions({}));
+}
+
+export function useSpaceOverview(spaceId: string) {
+	return reactQuery.useSuspenseQuery(
+		orpc.space.getOverview.queryOptions({ input: { spacePublicId: spaceId } }),
+	);
 }
 
 export function useSpace(spaceId: string) {
-	return reactQuery.useQuery(
-		orpc.space.byId.queryOptions({ input: { spaceId } }),
-	);
+	return useSpaceOverview(spaceId);
 }
 
 export function useCreateSpace() {
@@ -27,42 +29,14 @@ export function useCreateSpace() {
 
 	return reactQuery.useMutation(
 		orpc.space.create.mutationOptions({
-			onMutate: async (variables: InsertSpaceType) => {
-				const queryKey = orpc.space.all.queryKey({});
-				await queryClient.cancelQueries({ queryKey });
-
-				const previousSpaces =
-					queryClient.getQueryData<SidebarSpace[]>(queryKey);
-
-				queryClient.setQueryData<SidebarSpace[]>(queryKey, (old) => {
-					const optimisticSpace: SidebarSpace = {
-						publicId: crypto.randomUUID(),
-						name: variables.name,
-						icon: variables.icon ?? "IconFolder",
-						colorCode: variables.colorCode ?? "#98BB6C",
-						position: "0",
-					};
-					return old ? [...old, optimisticSpace] : [optimisticSpace];
-				});
-
-				return { previousSpaces };
-			},
-			onError: (_err, _variables, context) => {
-				if (context?.previousSpaces) {
-					queryClient.setQueryData(
-						orpc.space.all.queryKey({}),
-						context.previousSpaces,
-					);
-				}
-				toast.error("Failed to create space");
-			},
-			onSettled: () => {
+			onSuccess: (data) => {
+				toast.success(`Space "${data?.name}" created successfully`);
 				queryClient.invalidateQueries({
 					queryKey: orpc.space.all.queryKey({}),
 				});
 			},
-			onSuccess: (data) => {
-				toast.success(`Space "${data?.name}" created successfully`);
+			onError: () => {
+				toast.error("Failed to create space");
 			},
 		}),
 	);
@@ -73,57 +47,51 @@ export function useUpdateSpace() {
 
 	return reactQuery.useMutation(
 		orpc.space.update.mutationOptions({
-			onMutate: async (variables: {
-				spacePublicId: string;
-				input: Partial<UpdateSpaceType>;
-			}) => {
+			onMutate: async (variables) => {
 				const allQueryKey = orpc.space.all.queryKey({});
-				const byIdQueryKey = orpc.space.byId.queryKey({
-					input: { spaceId: variables.spacePublicId },
+				const overviewQueryKey = orpc.space.getOverview.queryKey({
+					input: { spacePublicId: variables.spacePublicId },
 				});
 
 				await queryClient.cancelQueries({ queryKey: allQueryKey });
-				await queryClient.cancelQueries({ queryKey: byIdQueryKey });
+				await queryClient.cancelQueries({ queryKey: overviewQueryKey });
 
-				const previousSpaces =
-					queryClient.getQueryData<SidebarSpace[]>(allQueryKey);
-				const previousSpace = queryClient.getQueryData(byIdQueryKey);
+				const previousAll = queryClient.getQueryData(allQueryKey);
+				const previousOverview = queryClient.getQueryData(overviewQueryKey);
 
-				queryClient.setQueryData<SidebarSpace[]>(allQueryKey, (old) => {
-					if (!old) return old;
-					return old
-						.map((space) =>
-							space.publicId === variables.spacePublicId
-								? { ...space, ...variables.input }
-								: space,
-						)
-						.sort((a, b) => {
-							if (a.position < b.position) return -1;
-							if (a.position > b.position) return 1;
-							return 0;
-						});
-				});
+				if (previousAll) {
+					queryClient.setQueryData(allQueryKey, (old) => {
+						if (!old) return old;
+						return old.map((s) =>
+							s.publicId === variables.spacePublicId
+								? { ...s, ...variables.input }
+								: s,
+						);
+					});
+				}
 
-				queryClient.setQueryData<Space>(byIdQueryKey, (old) => {
-					if (!old) return old;
-					return { ...old, ...variables.input };
-				});
+				if (previousOverview) {
+					queryClient.setQueryData(overviewQueryKey, (old) => {
+						if (!old) return old;
+						return { ...old, ...variables.input };
+					});
+				}
 
-				return { previousSpaces, previousSpace };
+				return { previousAll, previousOverview };
 			},
 			onError: (_err, variables, context) => {
-				if (context?.previousSpaces) {
+				if (context?.previousAll) {
 					queryClient.setQueryData(
 						orpc.space.all.queryKey({}),
-						context.previousSpaces,
+						context.previousAll,
 					);
 				}
-				if (context?.previousSpace) {
+				if (context?.previousOverview) {
 					queryClient.setQueryData(
-						orpc.space.byId.queryKey({
-							input: { spaceId: variables.spacePublicId },
+						orpc.space.getOverview.queryKey({
+							input: { spacePublicId: variables.spacePublicId },
 						}),
-						context.previousSpace,
+						context.previousOverview,
 					);
 				}
 				toast.error("Failed to update space");
@@ -133,8 +101,8 @@ export function useUpdateSpace() {
 					queryKey: orpc.space.all.queryKey({}),
 				});
 				queryClient.invalidateQueries({
-					queryKey: orpc.space.byId.queryKey({
-						input: { spaceId: variables.spacePublicId },
+					queryKey: orpc.space.getOverview.queryKey({
+						input: { spacePublicId: variables.spacePublicId },
 					}),
 				});
 			},
@@ -147,27 +115,28 @@ export function useDeleteSpace() {
 
 	return reactQuery.useMutation(
 		orpc.space.delete.mutationOptions({
-			onMutate: async (variables: { spacePublicId: string }) => {
-				const queryKey = orpc.space.all.queryKey({});
-				await queryClient.cancelQueries({ queryKey });
+			onMutate: async (variables) => {
+				const allQueryKey = orpc.space.all.queryKey({});
+				await queryClient.cancelQueries({ queryKey: allQueryKey });
+				const previousAll = queryClient.getQueryData(allQueryKey);
 
-				const previousSpaces =
-					queryClient.getQueryData<SidebarSpace[]>(queryKey);
+				if (previousAll) {
+					queryClient.setQueryData(allQueryKey, (old) => {
+						if (!old) return old;
+						return old.filter((s) => s.publicId !== variables.spacePublicId);
+					});
+				}
 
-				queryClient.setQueryData<SidebarSpace[]>(queryKey, (old) => {
-					if (!old) return old;
-					return old.filter(
-						(space) => space.publicId !== variables.spacePublicId,
-					);
-				});
-
-				return { previousSpaces };
+				return { previousAll };
+			},
+			onSuccess: () => {
+				toast.success("Space deleted successfully");
 			},
 			onError: (_err, _variables, context) => {
-				if (context?.previousSpaces) {
+				if (context?.previousAll) {
 					queryClient.setQueryData(
 						orpc.space.all.queryKey({}),
-						context.previousSpaces,
+						context.previousAll,
 					);
 				}
 				toast.error("Failed to delete space");
@@ -176,9 +145,6 @@ export function useDeleteSpace() {
 				queryClient.invalidateQueries({
 					queryKey: orpc.space.all.queryKey({}),
 				});
-			},
-			onSuccess: () => {
-				toast.success("Space deleted successfully");
 			},
 		}),
 	);

@@ -57,8 +57,9 @@ export const Route = createFileRoute("/(authenicated)/$slug")({
 		};
 	},
 	loader: ({ context }) => {
-		const { workspace, session } = context;
-		return { workspace, session };
+		const { workspace, session, orpc, queryClient } = context;
+		const spaces = queryClient.ensureQueryData(orpc.space.all.queryOptions({}));
+		return { workspace, session, spaces };
 	},
 	component: RouteComponent,
 });

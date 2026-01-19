@@ -1,4 +1,8 @@
 export const ICONS = [
+	"IconInfinity",
+	"IconGalaxy",
+	"IconRocket",
+	"IconTarget",
 	// General / UI
 	"IconHome",
 	"IconMenu",

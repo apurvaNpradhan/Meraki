@@ -8,6 +8,8 @@ import {
 	SidebarGroupContent,
 	SidebarHeader,
 	SidebarMenuButton,
+	SidebarTrigger,
+	useSidebar,
 } from "@/components/ui/sidebar";
 import { useRouteActive } from "@/hooks/use-active-route";
 import { NavSpaces } from "./nav-spaces";
@@ -20,12 +22,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 	const isActive = useRouteActive();
 	const navigate = useNavigate();
+	const sidebar = useSidebar();
 	return (
 		<Sidebar collapsible="icon" {...props} variant="inset">
 			<SidebarHeader className="p-0">
-				{session?.session.activeOrganization && (
-					<NavWorkspace activeWorkspaceId={workspace.id} />
-				)}
+				<div className="flex flex-row items-center gap-2">
+					{session?.session.activeOrganization && (
+						<NavWorkspace activeWorkspaceId={workspace.id} />
+					)}
+					{sidebar.state === "expanded" && <SidebarTrigger />}
+				</div>
 			</SidebarHeader>
 			<SidebarContent className="mt-5 flex flex-col gap-5 text-muted-foreground">
 				<SidebarGroup className="p-0">

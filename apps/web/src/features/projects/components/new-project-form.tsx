@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProjectInsertInput } from "@meraki/api/types";
-import { IconArrowRight, IconLoader2 } from "@tabler/icons-react";
+import { IconArrowRight, IconLayout, IconLoader2 } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
-import type { z } from "zod";
+import { z } from "zod";
 import ContentEditor from "@/components/editor/editors/content-editor";
 import { IconAndColorPicker } from "@/components/icon-and-colorpicker";
 import { PrioritySelector } from "@/components/priority-selector";
@@ -22,8 +22,11 @@ import { useModal } from "@/stores/modal.store";
 import { orpc } from "@/utils/orpc";
 import { useCreateProject } from "../hooks/use-project";
 import { StatusSelector } from "./status-selector";
+import type { Template } from "./templates";
 
-const formSchema = ProjectInsertInput;
+const formSchema = ProjectInsertInput.extend({
+	template: z.custom<Template | null>(),
+});
 type FormValues = z.input<typeof formSchema>;
 
 export function NewProjectForm({
@@ -33,7 +36,7 @@ export function NewProjectForm({
 	data?: Partial<ProjectInsertInput>;
 	spacePublicId: string;
 }) {
-	const { close } = useModal();
+	const { close, setDirty } = useModal();
 	const createProject = useCreateProject({
 		spacePublicId,
 	});
@@ -44,36 +47,65 @@ export function NewProjectForm({
 	const defaultStatus =
 		statuses.find((s) => s.type === "backlog") ?? statuses[0];
 
-	const { handleSubmit, control, getValues } = useForm<FormValues>({
+	const {
+		handleSubmit,
+		control,
+		getValues,
+		setValue,
+		watch,
+		formState: { isDirty },
+	} = useForm<FormValues>({
 		mode: "onChange",
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			name: data?.name ?? "",
 			summary: data?.summary ?? "",
 			description: data?.description ?? {},
-			icon: data?.icon ?? "IconClipboardList",
-			colorCode: data?.colorCode ?? "#3B82F6",
+			icon: data?.icon ?? "IconTarget",
+			colorCode: data?.colorCode ?? "#59C2FF",
 			priority: data?.priority ?? 0,
 			projectStatusPublicId:
 				data?.projectStatusPublicId ?? defaultStatus?.publicId,
 			startDate: data?.startDate ?? undefined,
 			targetDate: data?.targetDate ?? undefined,
+			template: null,
+			statuses: [],
 			spacePublicId,
 		},
 	});
 
-	const onSubmit = (values: FormValues) => {
-		createProject.mutate(values, {
-			onSuccess: () => {
-				close();
-			},
-		});
-	};
+	useEffect(() => {
+		setDirty(isDirty);
+	}, [isDirty, setDirty]);
 
+	const currentTemplate = watch("template");
+	const onSubmit = (values: FormValues) => {
+		createProject.mutate(
+			{
+				name: values.name,
+				summary: values.summary,
+				description: values.description,
+				icon: values.icon,
+				colorCode: values.colorCode,
+				priority: values.priority,
+				projectStatusPublicId: values.projectStatusPublicId,
+				startDate: values.startDate,
+				targetDate: values.targetDate,
+				spacePublicId,
+				statuses: values.template?.statuses ?? [],
+			},
+			{
+				onSuccess: () => {
+					close();
+				},
+			},
+		);
+	};
 	useEffect(() => {
 		const titleElement = document.getElementById("name");
 		if (titleElement) titleElement.focus();
 	}, []);
+	const { open } = useModal();
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -210,7 +242,7 @@ export function NewProjectForm({
 					name="description"
 					render={({ field }) => (
 						<ContentEditor
-							initialContent={field.value ?? {}}
+							initialContent={field.value ?? undefined}
 							placeholder="Write a project description, or collect ideas..."
 							className="mt-4 min-h-50"
 							{...field}
@@ -220,8 +252,28 @@ export function NewProjectForm({
 				/>
 
 				<ResponsiveModalFooter className="flex flex-row justify-end gap-2 border-t pt-4">
-					<Button type="button" variant="ghost" onClick={close}>
-						Cancel
+					<Button
+						variant="outline"
+						type="button"
+						onClick={() =>
+							open({
+								type: "SHOW_PROJECT_TEMPLATES",
+								data: {
+									currentTemplate,
+									setCurrentTemplate: (t: Template | null) =>
+										setValue("template", t),
+								},
+							})
+						}
+					>
+						{currentTemplate ? (
+							<div className="flex items-center gap-2">
+								<IconLayout size={16} className="text-primary" />
+								<span>{currentTemplate.name}</span>
+							</div>
+						) : (
+							"Use a template"
+						)}
 					</Button>
 					<Button
 						type="submit"

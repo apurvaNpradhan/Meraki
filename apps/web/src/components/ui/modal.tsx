@@ -1,10 +1,22 @@
+import React from "react";
 import { cn } from "@/lib/utils";
 import { useModal } from "@/stores/modal.store";
+import {
+	AlertDialog,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "./alert-dialog";
+import { Button } from "./button";
 import { ResponsiveModal, ResponsiveModalContent } from "./responsive-modal";
 
 interface Props {
 	children: React.ReactNode;
 	modalSize?: "sm" | "md" | "lg" | "fullscreen";
+	confirmation?: boolean;
+	isDirty?: boolean;
 	onClose?: () => void;
 	positionFromTop?: "sm" | "md" | "lg" | "none";
 	isVisible?: boolean;
@@ -15,13 +27,16 @@ const Modal: React.FC<Props> = ({
 	children,
 	onClose,
 	closeOnClickOutside,
+	confirmation,
+	isDirty,
 	isVisible,
 	modalSize = "md",
 	positionFromTop = "none",
 }) => {
 	const { isOpen, close } = useModal();
+	const [confirmationOpen, setConfirmationOpen] = React.useState(false);
 	const shouldShow = isVisible ?? isOpen;
-	const shouldCloseOnClickOutside = true;
+	const shouldCloseOnClickOutside = closeOnClickOutside ?? true;
 	const modalSizeMap = {
 		sm: "lg:w-full lg:max-w-[400px]",
 		md: "lg:w-full lg:max-w-[550px]",
@@ -40,26 +55,58 @@ const Modal: React.FC<Props> = ({
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			close();
-			onClose?.();
+			if (confirmation || isDirty) {
+				setConfirmationOpen(true);
+			} else {
+				handleClose();
+			}
 		}
 	};
 
+	const handleClose = () => {
+		onClose?.();
+		close();
+		setConfirmationOpen(false);
+	};
+
 	return (
-		<ResponsiveModal
-			open={shouldShow}
-			onOpenChange={shouldCloseOnClickOutside ? handleOpenChange : undefined}
-		>
-			<ResponsiveModalContent
-				className={cn(
-					modalSizeMap[modalSize],
-					positionFromTopClasses[positionFromTop],
-					"bg-card duration-200",
-				)}
+		<>
+			<ResponsiveModal
+				open={shouldShow}
+				onOpenChange={shouldCloseOnClickOutside ? handleOpenChange : undefined}
 			>
-				{children}
-			</ResponsiveModalContent>
-		</ResponsiveModal>
+				<ResponsiveModalContent
+					className={cn(
+						modalSizeMap[modalSize],
+						positionFromTopClasses[positionFromTop],
+						"bg-card duration-200",
+					)}
+				>
+					{children}
+				</ResponsiveModalContent>
+			</ResponsiveModal>
+			<AlertDialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Discard this item?</AlertDialogTitle>
+						<AlertDialogDescription>
+							Confirm to discard this item.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<Button
+							variant={"ghost"}
+							onClick={() => setConfirmationOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button variant="destructive" onClick={handleClose}>
+							Discard
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 };
 

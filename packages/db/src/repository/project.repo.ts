@@ -1,8 +1,20 @@
-import { and, count, desc, eq, isNull, lt } from "drizzle-orm";
+import {
+	and,
+	count,
+	countDistinct,
+	desc,
+	eq,
+	isNull,
+	lt,
+	sql,
+} from "drizzle-orm";
 import type z from "zod";
 import { db } from "..";
 import type { InsertProject, UpdateProject } from "../lib/zod-schemas";
 import { projects } from "../schema/project";
+import { projectStatuses } from "../schema/project-status";
+import { spaces } from "../schema/space";
+import { tasks } from "../schema/task";
 
 export const getCount = async () => {
 	const result = await db
@@ -41,6 +53,32 @@ export const getAllByWorkspaceId = (workspaceId: string) => {
 		orderBy: (p, { asc }) => [asc(p.position)],
 	});
 };
+export const getAllBySpaceId = (spaceId: bigint) => {
+	return db.query.projects.findMany({
+		columns: {
+			publicId: true,
+			colorCode: true,
+			icon: true,
+			updatedAt: true,
+			description: true,
+			position: true,
+			name: true,
+			priority: true,
+			startDate: true,
+			targetDate: true,
+		},
+		with: {
+			projectStatus: {
+				columns: {
+					publicId: true,
+					name: true,
+				},
+			},
+		},
+		where: and(eq(projects.spaceId, spaceId), isNull(projects.deletedAt)),
+		orderBy: (p, { asc }) => [asc(p.position)],
+	});
+};
 
 export const getIdByPublicId = async (projectPublicId: string) => {
 	const project = await db.query.projects.findFirst({
@@ -73,6 +111,46 @@ export const getById = async (projectId: bigint, workspaceId: string) => {
 					id: true,
 				},
 			},
+
+			tasks: {
+				columns: {
+					publicId: true,
+					title: true,
+					description: true,
+					priority: true,
+					position: true,
+					deadline: true,
+					completedAt: true,
+					isArchived: true,
+					createdAt: true,
+					updatedAt: true,
+					deletedAt: true,
+				},
+				with: {
+					project: {
+						columns: {
+							publicId: true,
+							name: true,
+						},
+					},
+					status: {
+						columns: {
+							publicId: true,
+							name: true,
+						},
+					},
+				},
+				where: (t, { isNull }) => isNull(t.deletedAt),
+			},
+			statuses: {
+				columns: {
+					name: true,
+					publicId: true,
+					colorCode: true,
+					type: true,
+					position: true,
+				},
+			},
 			projectStatus: {
 				columns: {
 					publicId: true,
@@ -95,6 +173,59 @@ export const getById = async (projectId: bigint, workspaceId: string) => {
 	});
 	if (!project) return null;
 	return project;
+};
+
+export const getProjectOverview = async (
+	workspaceId: string,
+	projectId: bigint,
+) => {
+	const result = await db
+		.select({
+			publicId: projects.publicId,
+			name: projects.name,
+			description: projects.description,
+			summary: projects.summary,
+			priority: projects.priority,
+			startDate: projects.startDate,
+			targetDate: projects.targetDate,
+			position: projects.position,
+			colorCode: projects.colorCode,
+			icon: projects.icon,
+			updatedAt: projects.updatedAt,
+
+			// Join fields
+			space: {
+				publicId: spaces.publicId,
+				name: spaces.name,
+				icon: spaces.icon,
+				colorCode: spaces.colorCode,
+			},
+			projectStatus: {
+				publicId: projectStatuses.publicId,
+				name: projectStatuses.name,
+				colorCode: projectStatuses.colorCode,
+				type: projectStatuses.type,
+			},
+
+			// Counts
+			taskCount: countDistinct(
+				sql`CASE WHEN ${tasks.deletedAt} IS NULL AND ${tasks.isArchived} IS FALSE THEN ${tasks.id} END`,
+			),
+		})
+		.from(projects)
+		.leftJoin(spaces, eq(projects.spaceId, spaces.id))
+		.leftJoin(projectStatuses, eq(projects.statusId, projectStatuses.id))
+		.leftJoin(tasks, eq(projects.id, tasks.projectId))
+		.where(
+			and(
+				eq(projects.organizationId, workspaceId),
+				eq(projects.id, projectId),
+				isNull(projects.deletedAt),
+			),
+		)
+		.groupBy(projects.id, spaces.id, projectStatuses.id);
+
+	return result[0];
 };
 
 export const getLastPositionByWorkspaceId = (organizationId: string) => {

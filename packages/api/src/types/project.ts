@@ -4,6 +4,7 @@ import {
 	UpdateProject,
 } from "@meraki/db/lib/zod-schemas";
 import z from "zod";
+import { InsertStatusInput } from "./status";
 
 export const ProjectInsertInput = InsertProject.omit({
 	organizationId: true,
@@ -14,6 +15,13 @@ export const ProjectInsertInput = InsertProject.omit({
 }).extend({
 	projectStatusPublicId: z.string(),
 	spacePublicId: z.string(),
+	statuses: z.array(
+		InsertStatusInput.omit({
+			projectPublicId: true,
+		}).extend({
+			position: z.string(),
+		}),
+	),
 });
 
 export type ProjectInsertInput = z.infer<typeof ProjectInsertInput>;

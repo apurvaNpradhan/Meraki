@@ -12,7 +12,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
 	SidebarGroupContent,
 	SidebarMenu,
@@ -23,7 +23,7 @@ import { useSpaces, useUpdateSpace } from "../hooks/use-space";
 import SortableSidebarSpaceItem from "./sortable-sidebar-space-item";
 
 export function SidebarSpaceList() {
-	const { data: spaces, isPending } = useSpaces();
+	const { data: spaces } = useSpaces();
 	const updateSpace = useUpdateSpace();
 	const [items, setItems] = useState<SidebarSpace[]>([]);
 
@@ -67,25 +67,28 @@ export function SidebarSpaceList() {
 	return (
 		<SidebarGroupContent>
 			<SidebarMenu>
-				{isPending &&
-					Array.from({ length: 3 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: Skeleton
-						<SidebarMenuSkeleton key={i} />
-					))}
-				<DndContext
-					sensors={sensors}
-					collisionDetection={closestCenter}
-					onDragEnd={handleDragEnd}
+				<Suspense
+					fallback={
+						<div>
+							<SidebarMenuSkeleton />
+						</div>
+					}
 				>
-					<SortableContext
-						items={items.map((i) => i.publicId)}
-						strategy={verticalListSortingStrategy}
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragEnd={handleDragEnd}
 					>
-						{items.map((space) => (
-							<SortableSidebarSpaceItem key={space.publicId} data={space} />
-						))}
-					</SortableContext>
-				</DndContext>
+						<SortableContext
+							items={items.map((i) => i.publicId)}
+							strategy={verticalListSortingStrategy}
+						>
+							{items.map((space) => (
+								<SortableSidebarSpaceItem key={space.publicId} data={space} />
+							))}
+						</SortableContext>
+					</DndContext>
+				</Suspense>
 			</SidebarMenu>
 		</SidebarGroupContent>
 	);

@@ -10,6 +10,7 @@ import {
 import { projects } from "./project";
 import { projectStatuses } from "./project-status";
 import { spaces } from "./space";
+import { statuses } from "./status";
 import { tasks } from "./task";
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -35,6 +36,12 @@ export const userRelations = relations(user, ({ many }) => ({
 	}),
 	deletedProjects: many(projects, {
 		relationName: "projectDeletedByUser",
+	}),
+	statuses: many(statuses, {
+		relationName: "statusCreatedByUser",
+	}),
+	deletedStatuses: many(statuses, {
+		relationName: "statusDeletedByUser",
 	}),
 	projectStatuses: many(projectStatuses, {
 		relationName: "projectStatusCreatedByUser",
@@ -117,6 +124,14 @@ export const taskRelations = relations(tasks, ({ many, one }) => ({
 		fields: [tasks.organizationId],
 		references: [organization.id],
 	}),
+	project: one(projects, {
+		fields: [tasks.projectId],
+		references: [projects.id],
+	}),
+	status: one(statuses, {
+		fields: [tasks.statusId],
+		references: [statuses.id],
+	}),
 }));
 
 export const projectStatusRelations = relations(projectStatuses, ({ one }) => ({
@@ -173,4 +188,22 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
 		fields: [projects.statusId],
 		references: [projectStatuses.id],
 	}),
+	statuses: many(statuses),
+	tasks: many(tasks),
+}));
+
+export const statusRelations = relations(statuses, ({ one, many }) => ({
+	createdBy: one(user, {
+		fields: [statuses.createdBy],
+		references: [user.id],
+	}),
+	deletedBy: one(user, {
+		fields: [statuses.deletedBy],
+		references: [user.id],
+	}),
+	project: one(projects, {
+		fields: [statuses.projectId],
+		references: [projects.id],
+	}),
+	tasks: many(tasks),
 }));

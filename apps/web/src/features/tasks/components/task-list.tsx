@@ -1,27 +1,37 @@
 import type { SelectTaskType, UpdateTaskType } from "@meraki/api/types";
+import type { Status } from "@meraki/api/types/status";
 import {
-	IconDotsVertical,
+	IconChevronDown,
+	IconChevronUp,
 	IconFilter,
-	IconPencil,
+	IconPlus,
 	IconSortAscending,
-	IconTrash,
 } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { format, isPast, isThisWeek, isToday, isTomorrow } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { useLoaderData } from "@tanstack/react-router";
+import {
+	differenceInCalendarDays,
+	format,
+	isPast,
+	isToday,
+	isTomorrow,
+} from "date-fns";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PrioritySelector, priorities } from "@/components/priority-selector";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
-	DropdownMenuSeparator,
 	DropdownMenuSub,
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
@@ -35,12 +45,13 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
-import { TaskDatePicker } from "@/features/tasks/components/task-date-picker";
 import { cn } from "@/lib/utils";
 import { useModal } from "@/stores/modal.store";
-import { orpc, queryClient } from "@/utils/orpc";
+import { orpc } from "@/utils/orpc";
+import { useUpdateTask } from "../hooks/use-tasks";
+import { getTaskStatusIcon, TaskStatusSelector } from "./task-status-selector";
 
-export type GroupBy = "none" | "priority" | "deadline";
+export type GroupBy = "none" | "priority" | "deadline" | "status";
 export type SortBy = "default" | "name" | "createdAt" | "priority";
 
 export const priorityLabels: Record<number, string> = {
@@ -56,16 +67,19 @@ export function ViewSettingsSelector({
 	onGroupByChange,
 	sortBy,
 	onSortByChange,
+	showStatusGrouping = false,
 }: {
 	groupBy: GroupBy;
 	onGroupByChange: (v: GroupBy) => void;
 	sortBy: SortBy;
 	onSortByChange: (v: SortBy) => void;
+	showStatusGrouping?: boolean;
 }) {
 	const groupingOptions = [
 		{ id: "none", label: "No Grouping" },
 		{ id: "priority", label: "Priority" },
 		{ id: "deadline", label: "Deadline" },
+		...(showStatusGrouping ? [{ id: "status", label: "Status" }] : []),
 	];
 
 	const sortingOptions = [
@@ -135,60 +149,47 @@ export function ViewSettingsSelector({
 export function TaskList({
 	groupBy,
 	sortBy,
-	workspaceId,
+	tasks: tasksProp,
+	projectPublicId,
+	statuses: statusesProp,
 }: {
 	groupBy: GroupBy;
 	sortBy: SortBy;
 	workspaceId: string;
+	tasks?: SelectTaskType[];
+	projectPublicId?: string;
+	statuses?: Status[];
 }) {
-	const { data: tasks, isPending } = useQuery(orpc.task.all.queryOptions({}));
+	const { data: projectData } = useQuery({
+		...orpc.project.byId.queryOptions({
+			input: { projectPublicId: projectPublicId! },
+		}),
+		enabled: !!projectPublicId && !statusesProp,
+	});
+
+	const statuses = statusesProp ?? projectData?.statuses;
+
+	const { data: allTasks, isPending } = useQuery({
+		...orpc.task.all.queryOptions({}),
+		enabled: !tasksProp,
+	});
+
+	const tasks = tasksProp ?? allTasks;
+
 	const [completingTaskIds, setCompletingTaskIds] = useState<Set<string>>(
 		new Set(),
 	);
-
-	const updateTask = useMutation(
-		orpc.task.update.mutationOptions({
-			onMutate: async (variables) => {
-				const { input } = variables;
-				await queryClient.cancelQueries(orpc.task.all.queryOptions({}));
-				const previousTasks = queryClient.getQueryData<SelectTaskType[]>(
-					orpc.task.all.queryKey({}),
-				);
-
-				queryClient.setQueryData<SelectTaskType[]>(
-					orpc.task.all.queryKey({}),
-					(old) => {
-						if (!old) return old;
-						return old.map((t) =>
-							t.publicId === input.taskPublicId ? { ...t, ...input } : t,
-						);
-					},
-				);
-
-				return { previousTasks };
-			},
-			onError: (_err, _variables, context) => {
-				if (context?.previousTasks) {
-					queryClient.setQueryData(
-						orpc.task.all.queryKey({}),
-						context.previousTasks,
-					);
-				}
-				toast.error("Failed to update task");
-			},
-			onSettled: () => {
-				queryClient.invalidateQueries(orpc.task.all.queryOptions({}));
-			},
-		}),
-	);
+	const updateTask = useUpdateTask({ projectPublicId });
+	const { open } = useModal();
+	const { workspace } = useLoaderData({ from: "/(authenicated)/$slug" });
 
 	const handleUpdate = (task: SelectTaskType, input: UpdateTaskType) => {
-		if (input.status === "done" && task.status !== "done") {
+		if (input.completedAt && !task.completedAt) {
 			setCompletingTaskIds((prev) => new Set(prev).add(task.publicId));
 
 			updateTask.mutate({
 				taskId: task.publicId,
-				workspaceId,
+				workspaceId: workspace.id,
 				input: {
 					...input,
 					isArchived: true,
@@ -201,10 +202,9 @@ export function TaskList({
 					onClick: () => {
 						updateTask.mutate({
 							taskId: task.publicId,
-							workspaceId,
+							workspaceId: workspace.id,
 							input: {
 								taskPublicId: task.publicId,
-								status: task.status,
 								isArchived: false,
 								completedAt: null,
 							},
@@ -223,48 +223,11 @@ export function TaskList({
 		} else {
 			updateTask.mutate({
 				taskId: task.publicId,
-				workspaceId,
+				workspaceId: workspace.id,
 				input,
 			});
 		}
 	};
-
-	const softDeleteTask = useMutation(
-		orpc.task.softDelete.mutationOptions({
-			onMutate: async (variables) => {
-				const { taskId } = variables;
-				await queryClient.cancelQueries(orpc.task.all.queryOptions({}));
-				const previousTasks = queryClient.getQueryData<SelectTaskType[]>(
-					orpc.task.all.queryKey({}),
-				);
-
-				queryClient.setQueryData<SelectTaskType[]>(
-					orpc.task.all.queryKey({}),
-					(old) => {
-						if (!old) return old;
-						return old.filter((t) => t.publicId !== taskId);
-					},
-				);
-
-				return { previousTasks };
-			},
-			onError: (_err, _variables, context) => {
-				if (context?.previousTasks) {
-					queryClient.setQueryData(
-						orpc.task.all.queryKey({}),
-						context.previousTasks,
-					);
-				}
-				toast.error("Failed to delete task");
-			},
-			onSuccess: () => {
-				toast.success("Task deleted successfully");
-			},
-			onSettled: () => {
-				queryClient.invalidateQueries(orpc.task.all.queryOptions({}));
-			},
-		}),
-	);
 
 	const groupedTasks = useMemo(() => {
 		if (!tasks) return [];
@@ -294,65 +257,89 @@ export function TaskList({
 			];
 		}
 
-		const groups: Record<
+		const groups = new Map<
 			string,
-			{ label: string; tasks: SelectTaskType[]; order: number }
-		> = {};
+			{ label: string; tasks: SelectTaskType[]; order: number; status?: Status }
+		>();
 
-		filteredTasks.forEach((task) => {
+		if (groupBy === "status" && statuses?.length) {
+			for (const [index, status] of statuses.entries()) {
+				groups.set(status.publicId, {
+					label: status.name,
+					tasks: [],
+					order: index,
+					status,
+				});
+			}
+		}
+
+		for (const task of filteredTasks) {
 			let key = "other";
 			let label = "Other";
 			let order = 999;
+			let status: Status | undefined;
 
-			if (groupBy === "priority") {
-				const p = task.priority ?? 0;
-				key = p.toString();
-				label = priorityLabels[p] || "No Priority";
-				order = 5 - p;
-			} else if (groupBy === "deadline") {
-				if (!task.deadline) {
-					key = "none";
-					label = "No Deadline";
-					order = 100;
-				} else {
-					const d = new Date(task.deadline);
-					if (isPast(d) && !isToday(d)) {
-						key = "overdue";
-						label = "Overdue";
-						order = 1;
-					} else if (isToday(d)) {
-						key = "today";
-						label = "Today";
-						order = 2;
-					} else if (isTomorrow(d)) {
-						key = "tomorrow";
-						label = "Tomorrow";
-						order = 3;
-					} else {
-						key = "future";
-						label = "Upcoming";
-						order = 4;
-					}
+			switch (groupBy) {
+				case "priority": {
+					const p = task.priority ?? 0;
+					key = p.toString();
+					label = priorityLabels[p] || "No Priority";
+					order = 5 - p;
+					break;
 				}
+				case "deadline": {
+					if (!task.deadline) {
+						key = "none";
+						label = "No Deadline";
+						order = 100;
+					} else {
+						const d = new Date(task.deadline);
+						if (isPast(d) && !isToday(d)) {
+							[key, label, order] = ["overdue", "Overdue", 1];
+						} else if (isToday(d)) {
+							[key, label, order] = ["today", "Today", 2];
+						} else if (isTomorrow(d)) {
+							[key, label, order] = ["tomorrow", "Tomorrow", 3];
+						} else {
+							[key, label, order] = ["future", "Upcoming", 4];
+						}
+					}
+					break;
+				}
+				case "status": {
+					if (task.status) {
+						key = task.status.publicId;
+						const projectStatus = statuses?.find((s) => s.publicId === key);
+						if (projectStatus) {
+							label = projectStatus.name;
+							status = projectStatus;
+							order = statuses?.indexOf(projectStatus) ?? 0;
+						} else {
+							label = task.status.name;
+							status = task.status as Status;
+							order = 1000;
+						}
+					} else {
+						[key, label, order] = ["no-status", "No Status", -1];
+					}
+					break;
+				}
+			}
+
+			const existing = groups.get(key);
+			if (existing) {
+				existing.tasks.push(task);
 			} else {
-				key = "all";
-				label = "All Tasks";
-				order = 1;
+				groups.set(key, { label, tasks: [task], order, status });
 			}
+		}
 
-			if (!groups[key]) {
-				groups[key] = { label, tasks: [], order };
-			}
+		return Array.from(groups.values()).sort((a, b) => a.order - b.order);
+	}, [tasks, groupBy, sortBy, completingTaskIds, statuses]);
 
-			groups[key].tasks.push(task);
-		});
-
-		return Object.values(groups).sort((a, b) => a.order - b.order);
-	}, [tasks, groupBy, sortBy, completingTaskIds]);
-
-	if (isPending) {
+	if (isPending && !tasksProp) {
 		return (
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-2">
 				{[1, 2, 3].map((i) => (
 					<div
 						key={i}
@@ -364,34 +351,117 @@ export function TaskList({
 	}
 
 	return (
-		<>
-			{groupedTasks.map((group) => (
-				<div key={group.label} className="space-y-3">
-					{groupBy !== "none" && (
-						<h3 className="border-b px-1 pb-2 font-semibold text-foreground/70 text-sm">
-							{group.label}
-						</h3>
-					)}
-					<div className="flex flex-col gap-px">
-						{group.tasks.map((task) => (
-							<TaskListItem
-								key={task.publicId}
-								task={task}
-								onUpdate={(input) => handleUpdate(task, input)}
-								onDelete={() =>
-									softDeleteTask.mutate({ taskId: task.publicId })
-								}
-							/>
-						))}
+		<div className="flex flex-col">
+			{groupedTasks.length > 0 ? (
+				<Accordion
+					multiple
+					className="flex flex-col"
+					defaultValue={groupedTasks.map((g) => g.label)}
+				>
+					{groupedTasks.map((group) => {
+						const isEmpty = group.tasks.length === 0;
+						if (isEmpty || groupBy === "none" || groupBy === "deadline")
+							return null;
+
+						return (
+							<AccordionItem
+								key={group.label}
+								value={group.label}
+								className="border-none"
+							>
+								<AccordionTrigger
+									className="flex w-full flex-row items-center justify-between rounded-none border-none bg-background p-2 transition-colors hover:bg-muted hover:no-underline data-[state=open]:bg-muted"
+									style={{
+										borderLeft: group.status?.colorCode
+											? `6px solid ${group.status.colorCode}`
+											: undefined,
+										backgroundColor: group.status?.colorCode
+											? `color-mix(in srgb, ${group.status.colorCode} 6%, var(--background))`
+											: undefined,
+									}}
+								>
+									<div className="flex items-center gap-2">
+										<Button
+											variant={"ghost"}
+											size="icon-sm"
+											className="flex items-center hover:text-primary"
+										>
+											<IconChevronDown
+												data-slot="accordion-trigger-icon"
+												className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
+											/>
+											<IconChevronUp
+												data-slot="accordion-trigger-icon"
+												className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
+											/>
+										</Button>
+										<h3 className="flex flex-row items-center gap-2 font-semibold text-foreground/70 text-sm">
+											{group.status &&
+												getTaskStatusIcon(
+													group.status.type,
+													group.status.colorCode,
+												)}
+											{group.label}
+											<span className="font-normal text-muted-foreground text-xs">
+												{group.tasks.length}
+											</span>
+										</h3>
+									</div>
+
+									{(groupBy === "status" || groupBy === "priority") && (
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											onClick={(e) => {
+												e.stopPropagation();
+												open({
+													type: "CREATE_TASK",
+													modalSize: "lg",
+													data: {
+														data: {
+															statusPublicId: group.status?.publicId,
+															priority: group.tasks[0]?.priority,
+														},
+														projectPublicId,
+														statuses,
+													},
+												});
+											}}
+										>
+											<IconPlus />
+										</Button>
+									)}
+								</AccordionTrigger>
+								<AccordionContent className="flex flex-col p-0">
+									<div className="flex flex-col">
+										{group.tasks.map((task) => (
+											<TaskListItem
+												key={task.publicId}
+												task={task}
+												onUpdate={(input) => handleUpdate(task, input)}
+												onDelete={() =>
+													open({
+														type: "DELETE_TASK",
+														data: { task, projectPublicId },
+													})
+												}
+												statuses={statuses}
+											/>
+										))}
+									</div>
+								</AccordionContent>
+							</AccordionItem>
+						);
+					})}
+				</Accordion>
+			) : (
+				!isPending && (
+					<div className="flex flex-col items-center justify-center py-20 text-center">
+						<p className="text-muted-foreground">No tasks found.</p>
 					</div>
-				</div>
-			))}
-			{!tasks?.length && (
-				<div className="flex flex-col items-center justify-center py-20 text-center">
-					<p className="text-muted-foreground">No tasks found in your inbox.</p>
-				</div>
+				)
 			)}
-		</>
+		</div>
 	);
 }
 
@@ -399,27 +469,23 @@ export function TaskListItem({
 	task,
 	onUpdate,
 	onDelete,
+	statuses,
 }: {
 	task: SelectTaskType;
 	onUpdate: (input: UpdateTaskType) => void;
 	onDelete: () => void;
+	statuses?: Status[];
 }) {
 	const { open } = useModal();
-	const isDone = task.status === "done";
+	const isDone = !!task.completedAt;
+	const priority =
+		priorities.find((p) => p.value === task.priority) ?? priorities[0];
 
-	const formatTaskDate = (date: Date | string | null) => {
-		if (!date) return null;
-		const d = new Date(date);
-		if (isToday(d)) return "Today";
-		if (isTomorrow(d)) return "Tomorrow";
-		if (isThisWeek(d)) return format(d, "eeee");
-		return format(d, "MMM d, yyyy");
-	};
-
+	console.log(priority);
 	return (
 		<Item
 			tabIndex={0}
-			className="group cursor-pointer flex-nowrap gap-0 p-1 transition-colors duration-200 ease-out hover:bg-accent/30"
+			className="group cursor-pointer flex-nowrap gap-2 p-1 transition-colors duration-200 ease-out hover:bg-accent/30 md:gap-0"
 			onKeyDown={(e) => {
 				if (e.key === "Enter" || e.key === " ") {
 					open({
@@ -432,24 +498,23 @@ export function TaskListItem({
 			<ItemMedia>
 				<Checkbox
 					style={{
-						borderColor: priorities[task.priority].color,
+						borderColor: `${priority.color} !important`,
 						...(task.completedAt && {
-							backgroundColor: priorities[task.priority].color,
+							backgroundColor: `${priority.color} !important`,
 						}),
 					}}
 					checked={isDone}
 					className={cn(
-						"rounded-full",
-						"-translate-x-2 md:hidden",
+						"rounded-full bg-transparent",
+						"md:hidden md:-translate-x-4",
 						"transition-all duration-200 ease-out",
-						"group-hover:block group-hover:translate-x-0",
-						"focus-visible:block focus-visible:translate-x-0",
-						isDone && "translate-x-0 md:block",
+						"group-hover:block group-hover:translate-x-1",
+						"md:focus-visible:block md:focus-visible:translate-x-1",
+						isDone && "md:block md:translate-x-0",
 					)}
 					onCheckedChange={(checked) => {
 						onUpdate({
 							taskPublicId: task.publicId,
-							status: checked ? "done" : "todo",
 							completedAt: checked ? new Date() : null,
 						});
 					}}
@@ -458,8 +523,8 @@ export function TaskListItem({
 			<ItemContent
 				className={cn(
 					"min-w-0 transition-[margin] duration-200 ease-out",
-					"group-hover:ml-2",
-					isDone && "ml-2",
+					"group-hover:ml-1",
+					isDone && "ml-1",
 				)}
 				onClick={() =>
 					open({
@@ -471,7 +536,7 @@ export function TaskListItem({
 			>
 				<ItemTitle
 					className={cn(
-						"block truncate text-[15px] leading-tight transition-colors",
+						"block truncate px-3 text-[15px] leading-tight transition-colors",
 						isDone && "text-muted-foreground line-through",
 					)}
 				>
@@ -481,82 +546,83 @@ export function TaskListItem({
 					<ItemDescription
 						className={cn(
 							"text-xs",
-							isPast(new Date(task.deadline)) &&
-								!isToday(new Date(task.deadline))
-								? "text-destructive"
-								: "text-muted-foreground",
+
+							getDueLabel(task.deadline).color,
 						)}
 					>
-						{formatTaskDate(task.deadline)}
+						{getDueLabel(task.deadline).date}
 					</ItemDescription>
 				)}
 			</ItemContent>
-			<ItemActions className="transition-all duration-200 ease-out group-hover:opacity-100 md:opacity-0">
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<Button variant="ghost" size="icon-sm">
-								<IconDotsVertical />
-							</Button>
-						}
-					/>
-					<DropdownMenuContent className="w-48">
-						<DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-							<IconPencil className="mr-2" /> Edit
-						</DropdownMenuItem>
-						<DropdownMenuGroup>
-							<DropdownMenuLabel>Properties</DropdownMenuLabel>
-
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								onClick={(e) => {
-									e.stopPropagation();
-									e.preventDefault();
-								}}
-								className="p-0!"
-							>
-								<PrioritySelector
-									showLabel={true}
-									value={task.priority}
-									className="flex w-full items-center justify-start"
-									onPriorityChange={(priority) =>
-										onUpdate({ taskPublicId: task.publicId, priority })
-									}
-								/>
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								onClick={(e) => {
-									e.stopPropagation();
-									e.preventDefault();
-								}}
-								className="p-0!"
-							>
-								<TaskDatePicker
-									date={task.deadline ? new Date(task.deadline) : null}
-									onSelect={(date) =>
-										onUpdate({
-											taskPublicId: task.publicId,
-											deadline: date ?? null,
-										})
-									}
-									className="flex w-full items-center justify-start"
-								/>
-							</DropdownMenuItem>
-						</DropdownMenuGroup>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={(e) => {
-								e.stopPropagation();
-								onDelete();
-							}}
-						>
-							<IconTrash className="mr-2" /> Delete
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+			<ItemActions className="flex flex-row items-center gap-2">
+				<PrioritySelector
+					value={task.priority}
+					className="w-fit"
+					onPriorityChange={(priority) =>
+						onUpdate({ taskPublicId: task.publicId, priority })
+					}
+				/>
+				<TaskStatusSelector
+					className="w-fit"
+					statuses={statuses ?? []}
+					selectedStatusId={task.status?.publicId}
+					onStatusChange={(status) =>
+						onUpdate({
+							taskPublicId: task.publicId,
+							statusPublicId: status,
+						})
+					}
+				/>
 			</ItemActions>
 		</Item>
 	);
 }
+
+export function TaskListItemSkeleton() {
+	return (
+		<Item className="gap-2 p-1">
+			<ItemMedia>
+				<div className="h-4 w-4 animate-pulse rounded-full bg-muted" />
+			</ItemMedia>
+			<ItemContent>
+				<div className="h-4 w-64 animate-pulse rounded bg-muted" />
+			</ItemContent>
+			<ItemActions>
+				<div className="h-4 w-12 animate-pulse rounded bg-muted" />
+			</ItemActions>
+		</Item>
+	);
+}
+
+const getDueLabel = (date?: Date | null) => {
+	const colors = {
+		thisWeek: "text-orange-500",
+		later: "text-muted-foreground",
+	};
+	if (!date)
+		return {
+			color: colors.later,
+			date: "Due date",
+		};
+
+	if (isToday(date)) {
+		return {
+			color: colors.thisWeek,
+			date: "Due today",
+		};
+	}
+
+	const daysLeft = differenceInCalendarDays(date, new Date());
+
+	if (daysLeft > 0 && daysLeft <= 7) {
+		return {
+			color: colors.thisWeek,
+			date: daysLeft === 1 ? "1 day " : `${daysLeft} days `,
+		};
+	}
+
+	return {
+		color: colors.later,
+		date: format(date, "d MMM"),
+	};
+};

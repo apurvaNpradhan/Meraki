@@ -6,6 +6,23 @@ import { protectedProcedure } from "..";
 import { InsertSpaceInput, UpdateSpaceInput } from "../types/space";
 
 export const spaceRouter = {
+	getOverview: protectedProcedure
+		.input(z.object({ spacePublicId: z.string() }))
+		.handler(async ({ context, input }) => {
+			const spaceId = await spaceRepo.getIdByPublicId(input.spacePublicId);
+			if (!spaceId) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "Space not found",
+				});
+			}
+
+			const space = await Promise.all([
+				await spaceRepo.getSpaceDetails(context.workspace.id, spaceId.id),
+			]);
+			return {
+				...space[0],
+			};
+		}),
 	all: protectedProcedure.handler(async ({ context }) => {
 		const spaces = await spaceRepo.getAllByWorkspaceId(context.workspace.id);
 		return spaces;

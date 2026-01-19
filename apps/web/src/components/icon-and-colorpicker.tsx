@@ -38,7 +38,7 @@ export function IconAndColorPicker({
 	icon,
 	onIconChange,
 	variant = "default",
-	color = "#1F1F28",
+	color = "#B3B1AD",
 	onColorChange,
 	placeholder = "Select icon...",
 	iconSize = 24,

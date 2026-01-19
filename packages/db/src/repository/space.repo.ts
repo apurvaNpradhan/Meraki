@@ -1,8 +1,44 @@
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, count, countDistinct, desc, eq, isNull, sql } from "drizzle-orm";
 import type z from "zod";
 import { db } from "..";
 import type { InsertSpaceSchema, UpdateSpaceSchema } from "../lib/zod-schemas";
+import { projects, tasks } from "../schema";
 import { spaces } from "../schema/space";
+
+export const getSpaceDetails = async (workspaceId: string, spaceId: bigint) => {
+	const result = await db
+		.select({
+			publicId: spaces.publicId,
+			name: spaces.name,
+			description: spaces.description,
+			colorCode: spaces.colorCode,
+			icon: spaces.icon,
+			createdAt: spaces.createdAt,
+			updatedAt: spaces.updatedAt,
+			deletedAt: spaces.deletedAt,
+			deletedBy: spaces.deletedBy,
+			createdBy: spaces.createdBy,
+
+			projectCount: countDistinct(projects.id),
+
+			taskCount: countDistinct(
+				sql`CASE WHEN ${tasks.deletedAt}  IS NULL AND ${tasks.isArchived} IS FALSE THEN ${tasks.id} END`,
+			),
+		})
+		.from(spaces)
+		.leftJoin(projects, eq(spaces.id, projects.spaceId))
+		.leftJoin(tasks, eq(projects.id, tasks.projectId))
+		.where(
+			and(
+				eq(spaces.organizationId, workspaceId),
+				eq(spaces.id, spaceId),
+				isNull(spaces.deletedAt),
+			),
+		)
+		.groupBy(spaces.id);
+
+	return result[0];
+};
 
 export const getSpaceCount = async (workspaceId: string) => {
 	const result = await db

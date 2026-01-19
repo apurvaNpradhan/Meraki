@@ -9,6 +9,7 @@ import { protectedProcedure, publicProcedure } from "../index";
 import { projectRouter } from "./project";
 import { projectStatusRouter } from "./project-status";
 import { spaceRouter } from "./space";
+import { statusRouter } from "./status";
 import { TaskRouter } from "./task";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -23,6 +24,7 @@ export const appRouter = {
 	space: spaceRouter,
 	project: projectRouter,
 	projectStatus: projectStatusRouter,
+	status: statusRouter,
 	healthCheck: publicProcedure.handler(() => {
 		return "OK";
 	}),

@@ -37,30 +37,13 @@ import { NumberedListPickerPlugin } from "@/components/editor/plugins/picker/num
 import { ParagraphPickerPlugin } from "@/components/editor/plugins/picker/paragraph-picker-plugin";
 import { QuotePickerPlugin } from "@/components/editor/plugins/picker/quote-picker-plugin";
 import { TablePickerPlugin } from "@/components/editor/plugins/picker/table-picker-plugin";
-import { FormatBulletedList } from "@/components/editor/plugins/toolbar/block-format/format-bulleted-list";
-import { FormatCheckList } from "@/components/editor/plugins/toolbar/block-format/format-check-list";
-import { FormatCodeBlock } from "@/components/editor/plugins/toolbar/block-format/format-code-block";
-import { FormatHeading } from "@/components/editor/plugins/toolbar/block-format/format-heading";
-import { FormatNumberedList } from "@/components/editor/plugins/toolbar/block-format/format-numbered-list";
-import { FormatParagraph } from "@/components/editor/plugins/toolbar/block-format/format-paragraph";
-import { FormatQuote } from "@/components/editor/plugins/toolbar/block-format/format-quote";
-import { BlockFormatDropDown } from "@/components/editor/plugins/toolbar/block-format-toolbar-plugin";
-import { CodeLanguageToolbarPlugin } from "@/components/editor/plugins/toolbar/code-language-toolbar-plugin";
-import { ElementFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/element-format-toolbar-plugin";
-import { FontFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/font-format-toolbar-plugin";
-import { HistoryToolbarPlugin } from "@/components/editor/plugins/toolbar/history-toolbar-plugin";
-import { HorizontalRuleToolbarPlugin } from "@/components/editor/plugins/toolbar/horizontal-rule-toolbar-plugin";
-import { ImageToolbarPlugin } from "@/components/editor/plugins/toolbar/image-toolbar-plugin";
-import { LinkToolbarPlugin } from "@/components/editor/plugins/toolbar/link-toolbar-plugin";
-import { TableToolbarPlugin } from "@/components/editor/plugins/toolbar/table-toolbar-plugin";
-import { ToolbarPlugin } from "@/components/editor/plugins/toolbar/toolbar-plugin";
 import { HR } from "@/components/editor/transformers/markdown-hr-transformer";
 import { IMAGE } from "@/components/editor/transformers/markdown-image-transformer";
 import { TABLE } from "@/components/editor/transformers/markdown-table-transformer";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Plugins({ placeholder }: { placeholder?: string }) {
-	const isMobile = useIsMobile();
+	const _isMobile = useIsMobile();
 	const [floatingAnchorElem, setFloatingAnchorElem] =
 		useState<HTMLDivElement | null>(null);
 	const [isLinkEditMode, setIsLinkEditMode] = useState<boolean>(false);
@@ -75,7 +58,7 @@ export function Plugins({ placeholder }: { placeholder?: string }) {
 
 	return (
 		<div className="relative">
-			{isMobile && (
+			{/* 	{isMobile && (
 				<ToolbarPlugin>
 					{({ blockType }) => (
 						<div className="vertical-align-middle sticky top-0 z-10 flex items-center gap-2 overflow-auto border-b bg-card p-1">
@@ -105,7 +88,7 @@ export function Plugins({ placeholder }: { placeholder?: string }) {
 						</div>
 					)}
 				</ToolbarPlugin>
-			)}
+			)} */}
 			<div className="relative">
 				<RichTextPlugin
 					contentEditable={

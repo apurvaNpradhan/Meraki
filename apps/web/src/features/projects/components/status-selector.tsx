@@ -6,6 +6,7 @@ import {
 	IconCircleHalf2,
 	IconCircleXFilled,
 } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,12 +24,13 @@ import {
 } from "@/components/ui/popover";
 import { useUpdateProject } from "@/features/projects/hooks/use-project";
 import { cn } from "@/lib/utils";
-import type { ProjectBySpaceItem, ProjectStatus } from "@/types/project";
+import type { ProjectBySpaceItem } from "@/types/project";
+import { orpc } from "@/utils/orpc";
 
 interface StatusSelectorProps {
 	project?: ProjectBySpaceItem;
 	showLabel?: boolean;
-	statuses: ProjectStatus[];
+	// statuses: ProjectStatus[];
 	projectPublicId?: string;
 	spacePublicId?: string;
 	className?: string;
@@ -60,7 +62,6 @@ export const getStatusIcon = (
 export function StatusSelector({
 	project,
 	showLabel = false,
-	statuses,
 	projectPublicId,
 	spacePublicId,
 	className,
@@ -76,6 +77,8 @@ export function StatusSelector({
 	const updateProject = useUpdateProject({
 		spacePublicId: spacePublicId ?? "",
 	});
+
+	const { data: statuses } = useQuery(orpc.projectStatus.all.queryOptions());
 
 	useEffect(() => {
 		if (selectedStatusId) {
@@ -96,7 +99,7 @@ export function StatusSelector({
 		const idToUpdate = projectPublicId ?? project?.publicId;
 
 		if (idToUpdate && spacePublicId) {
-			const newStatus = statuses.find((s) => s.publicId === statusId);
+			const newStatus = statuses?.find((s) => s.publicId === statusId);
 			if (newStatus) {
 				updateProject.mutate({
 					projectPublicId: idToUpdate,
@@ -106,7 +109,7 @@ export function StatusSelector({
 		}
 	};
 
-	const currentStatus = statuses.find((s) => s.publicId === currentStatusId);
+	const currentStatus = statuses?.find((s) => s.publicId === currentStatusId);
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -142,7 +145,7 @@ export function StatusSelector({
 					<CommandList>
 						<CommandEmpty>No status found.</CommandEmpty>
 						<CommandGroup>
-							{statuses.map((item) => (
+							{statuses?.map((item) => (
 								<CommandItem
 									key={item.publicId}
 									value={item.publicId}

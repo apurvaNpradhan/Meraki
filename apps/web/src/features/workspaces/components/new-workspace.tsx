@@ -3,7 +3,7 @@ import { env } from "@meraki/env/web";
 import { IconCamera, IconLoader2 } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -34,7 +34,7 @@ const newWorkspaceSchema = z.object({
 type NewWorkspaceValues = z.infer<typeof newWorkspaceSchema>;
 
 function NewWorkspaceModal() {
-	const { close } = useModal();
+	const { close, setDirty } = useModal();
 	const { mutateAsync: upload } = useMutation(orpc.upload.mutationOptions());
 	const _navigate = useNavigate();
 	const [loadingLogo, setLoadingLogo] = useState(false);
@@ -46,6 +46,10 @@ function NewWorkspaceModal() {
 			logo: "",
 		},
 	});
+
+	useEffect(() => {
+		setDirty(form.formState.isDirty);
+	}, [form.formState.isDirty, setDirty]);
 	const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;

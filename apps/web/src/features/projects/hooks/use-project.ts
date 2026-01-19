@@ -1,6 +1,5 @@
 import * as reactQuery from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
-import { generateKeyBetween } from "fractional-indexing";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { orpc } from "@/utils/orpc";
 
@@ -16,10 +15,31 @@ export function useProjects() {
 		}),
 	);
 }
-
-export function useProject(publicId: string) {
+export function useProjectsBySpaceId(spacePublicId: string) {
 	return reactQuery.useSuspenseQuery(
-		orpc.project.byId.queryOptions({
+		orpc.project.allBySpaceId.queryOptions({
+			input: {
+				spacePublicId,
+			},
+		}),
+	);
+}
+
+export function useProject(projectPublicId: string) {
+	return reactQuery.useSuspenseQuery(
+		orpc.project.getOverview.queryOptions({
+			input: {
+				projectPublicId,
+			},
+		}),
+	);
+}
+
+export const useProjectOverview = useProject;
+
+export function useProjectTasks(publicId: string) {
+	return reactQuery.useSuspenseQuery(
+		orpc.task.allByProjectId.queryOptions({
 			input: {
 				projectPublicId: publicId,
 			},
@@ -27,147 +47,191 @@ export function useProject(publicId: string) {
 	);
 }
 
+export function useProjectStatuses(publicId: string) {
+	const { data } = useProjectOverview(publicId);
+	return { data: data.statuses };
+}
+
 export function useUpdateProject({
 	spacePublicId,
 }: {
 	spacePublicId?: string;
-}) {
+} = {}) {
 	const queryClient = reactQuery.useQueryClient();
 
 	return reactQuery.useMutation(
 		orpc.project.update.mutationOptions({
-			onMutate: async (newProject) => {
-				// 1. Optimistically update the list
-				const queryKey = orpc.project.list.queryKey({
-					input: { limit: 20 },
-				});
-				await queryClient.cancelQueries({ queryKey });
-
-				const previousProjects = queryClient.getQueryData(queryKey);
-
-				if (previousProjects) {
-					queryClient.setQueryData(queryKey, (old: any) => {
-						if (!old) return old;
-
-						return {
-							...old,
-							pages: old.pages.map((page: any) => ({
-								...page,
-								items: page.items.map((item: any) => {
-									if (item.publicId === newProject.projectPublicId) {
-										const updatedItem = { ...item, ...newProject };
-										if (newProject.projectStatusPublicId) {
-											updatedItem.status = {
-												...(item.status ?? {}),
-												publicId: newProject.projectStatusPublicId,
-											};
-										}
-										return updatedItem;
-									}
-									return item;
-								}),
-							})),
-						};
-					});
-				}
-
-				const singleProjectQueryKey = orpc.project.byId.queryKey({
-					input: { projectPublicId: newProject.projectPublicId },
-				});
-				await queryClient.cancelQueries({ queryKey: singleProjectQueryKey });
-				const previousSingleProject = queryClient.getQueryData(
-					singleProjectQueryKey,
-				);
-
-				queryClient.setQueryData(singleProjectQueryKey, (old) => {
-					if (!old) return old;
-
-					return {
-						...old,
-						...newProject,
-						projectStatus: newProject.projectStatusPublicId
-							? { publicId: newProject.projectStatusPublicId }
-							: old.projectStatus,
-					};
-				});
-
-				let previousSpace: any;
-				if (spacePublicId) {
-					const spaceQueryKey = orpc.space.byId.queryKey({
-						input: {
-							spaceId: spacePublicId,
-						},
-					});
-					await queryClient.cancelQueries({ queryKey: spaceQueryKey });
-					previousSpace = queryClient.getQueryData(spaceQueryKey);
-
-					if (previousSpace) {
-						queryClient.setQueryData(spaceQueryKey, (old) => {
-							if (!old) return old;
-							return {
-								...old,
-								projects: (old.projects ?? [])
-									.map((p) => {
-										if (p.publicId === newProject.projectPublicId) {
-											const updatedP = {
-												...p,
-												...newProject,
-											};
-											if (newProject.projectStatusPublicId) {
-												updatedP.projectStatus = {
-													...(p.projectStatus ?? {}),
-													publicId: newProject.projectStatusPublicId,
-												};
-											}
-											return updatedP;
-										}
-										return p;
-									})
-									.sort((a, b) => {
-										if (a.position < b.position) return -1;
-										if (a.position > b.position) return 1;
-										return 0;
-									}),
-							};
-						});
-					}
-				}
-
-				return { previousProjects, previousSingleProject, previousSpace };
-			},
-			onError: (_err, newProject, context) => {
-				queryClient.setQueryData(
-					orpc.project.list.queryKey({ input: { limit: 20 } }),
-					context?.previousProjects,
-				);
-				queryClient.setQueryData(
-					orpc.project.byId.queryKey({
-						input: { projectPublicId: newProject.projectPublicId },
-					}),
-					context?.previousSingleProject,
-				);
-				if (spacePublicId && context?.previousSpace) {
-					queryClient.setQueryData(
-						orpc.space.byId.queryKey({
-							input: { spaceId: spacePublicId },
-						}),
-						context.previousSpace,
-					);
-				}
-			},
 			onSettled: (_data, _error, variables) => {
+				//Invalidate queries
 				queryClient.invalidateQueries({
 					queryKey: orpc.project.list.queryKey({ input: { limit: 20 } }),
 				});
 				queryClient.invalidateQueries({
-					queryKey: orpc.project.byId.queryKey({
+					queryKey: orpc.project.getOverview.queryKey({
 						input: { projectPublicId: variables.projectPublicId },
 					}),
 				});
 				if (spacePublicId) {
 					queryClient.invalidateQueries({
-						queryKey: orpc.space.byId.queryKey({
-							input: { spaceId: spacePublicId },
+						queryKey: orpc.project.allBySpaceId.queryKey({
+							input: { spacePublicId },
+						}),
+					});
+				}
+			},
+			onMutate: async (variables) => {
+				const overviewQueryKey = orpc.project.getOverview.queryKey({
+					input: {
+						projectPublicId: variables.projectPublicId,
+					},
+				});
+
+				let spaceQueryKey = null;
+				if (spacePublicId) {
+					spaceQueryKey = orpc.project.allBySpaceId.queryKey({
+						input: {
+							spacePublicId,
+						},
+					});
+				}
+
+				await queryClient.cancelQueries({
+					queryKey: overviewQueryKey,
+				});
+
+				if (spaceQueryKey) {
+					await queryClient.cancelQueries({
+						queryKey: spaceQueryKey,
+					});
+				}
+
+				const previousOverview = queryClient.getQueryData(overviewQueryKey);
+				if (previousOverview) {
+					queryClient.setQueryData(overviewQueryKey, (old) => {
+						if (!old) return old;
+						return {
+							...old,
+							...variables,
+							...(variables.projectStatusPublicId && {
+								projectStatus: {
+									publicId: variables.projectStatusPublicId ?? "",
+									name: "",
+									colorCode: "",
+									icon: "",
+									type: "backlog",
+								},
+							}),
+						};
+					});
+				}
+
+				const previousSpace = spaceQueryKey
+					? queryClient.getQueryData(spaceQueryKey)
+					: null;
+				if (previousSpace && spaceQueryKey) {
+					queryClient.setQueryData(spaceQueryKey, (old) => {
+						if (!old) return old;
+						return old.map((p) =>
+							p.publicId === variables.projectPublicId
+								? {
+										...p,
+										...variables,
+										...(variables.projectStatusPublicId && {
+											projectStatus: {
+												publicId: variables.projectStatusPublicId ?? "",
+												name: "",
+											},
+										}),
+									}
+								: p,
+						);
+					});
+				}
+
+				return { previousOverview, previousSpace };
+			},
+			onError: (_err, _variables, context) => {
+				if (context?.previousOverview) {
+					queryClient.setQueryData(
+						orpc.project.getOverview.queryKey({
+							input: { projectPublicId: _variables.projectPublicId },
+						}),
+						context.previousOverview,
+					);
+				}
+				if (context?.previousSpace && spacePublicId) {
+					queryClient.setQueryData(
+						orpc.project.allBySpaceId.queryKey({
+							input: { spacePublicId },
+						}),
+						context.previousSpace,
+					);
+				}
+				toast.error("Failed to update project");
+			},
+		}),
+	);
+}
+
+export function useDeleteProject({
+	spacePublicId,
+}: {
+	spacePublicId?: string;
+} = {}) {
+	const queryClient = reactQuery.useQueryClient();
+
+	return reactQuery.useMutation(
+		orpc.project.delete.mutationOptions({
+			onMutate: async (variables) => {
+				let spaceProjectsQueryKey = null;
+
+				if (spacePublicId) {
+					spaceProjectsQueryKey = orpc.project.allBySpaceId.queryKey({
+						input: { spacePublicId },
+					});
+					await queryClient.cancelQueries({ queryKey: spaceProjectsQueryKey });
+				}
+
+				const previousSpaceProjects = spaceProjectsQueryKey
+					? queryClient.getQueryData(spaceProjectsQueryKey)
+					: null;
+
+				if (spaceProjectsQueryKey && previousSpaceProjects) {
+					queryClient.setQueryData(spaceProjectsQueryKey, (old) => {
+						if (!old) return old;
+						return old.filter((p) => p.publicId !== variables.projectPublicId);
+					});
+				}
+
+				return { previousSpaceProjects };
+			},
+			onSuccess: () => {
+				toast.success("Project deleted successfully", {
+					action: {
+						label: "Undo",
+						onClick: () => {},
+					},
+				});
+			},
+			onError: (err, _variables, context) => {
+				if (context?.previousSpaceProjects && spacePublicId) {
+					queryClient.setQueryData(
+						orpc.project.allBySpaceId.queryKey({
+							input: { spacePublicId },
+						}),
+						context.previousSpaceProjects,
+					);
+				}
+				toast.error(err.message || "Failed to delete project");
+			},
+			onSettled: (_data, _error, _variables) => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.project.list.queryKey({ input: { limit: 20 } }),
+				});
+				if (spacePublicId) {
+					queryClient.invalidateQueries({
+						queryKey: orpc.project.allBySpaceId.queryKey({
+							input: { spacePublicId },
 						}),
 					});
 				}
@@ -177,187 +241,41 @@ export function useUpdateProject({
 }
 
 export function useCreateProject({ spacePublicId }: { spacePublicId: string }) {
-	const _navigate = useNavigate();
+	const navigate = useNavigate();
+	const { slug } = useParams({ strict: false });
 	const queryClient = reactQuery.useQueryClient();
 
 	return reactQuery.useMutation(
 		orpc.project.create.mutationOptions({
-			onMutate: async (input) => {
-				const queryKey = orpc.project.list.queryKey({
-					input: { limit: 20 },
-				});
-				await queryClient.cancelQueries({ queryKey });
-
-				const spaceQueryKey = orpc.space.byId.queryKey({
-					input: {
-						spaceId: spacePublicId,
-					},
-				});
-				await queryClient.cancelQueries({ queryKey: spaceQueryKey });
-
-				const previousProjects = queryClient.getQueryData(queryKey) as any;
-				const previousSpace = queryClient.getQueryData(spaceQueryKey);
-
-				const optimisticProject = {
-					publicId: crypto.randomUUID(),
-					name: input.name,
-					position: "not-set",
-					colorCode: input.colorCode,
-					icon: input.icon,
-					description: input.description ?? "",
-					summary: input.summary,
-					priority: input.priority ?? 0,
-					startDate: input.startDate ?? null,
-					updatedAt: new Date(),
-					targetDate: input.targetDate ?? null,
-					projectStatus: { publicId: input.projectStatusPublicId },
-					space: previousSpace
-						? {
-								name: previousSpace.name,
-								publicId: previousSpace.publicId,
-								colorCode: previousSpace.colorCode,
-								icon: previousSpace.icon,
-							}
-						: {
-								name: "",
-								publicId: spacePublicId,
-								colorCode: "",
-								icon: "",
-							},
-				};
-
-				if (previousProjects?.pages) {
-					let lastProject = null;
-					// Find the last project in the last non-empty page
-					for (let i = previousProjects.pages.length - 1; i >= 0; i--) {
-						const page = previousProjects.pages[i];
-						if (page.items && page.items.length > 0) {
-							lastProject = page.items[page.items.length - 1];
-							break;
-						}
-					}
-
-					const position = generateKeyBetween(
-						lastProject?.position ?? null,
-						null,
-					);
-					const newProjectWithPosition = { ...optimisticProject, position };
-
-					queryClient.setQueryData(queryKey, (old: any) => {
-						if (!old || !old.pages || old.pages.length === 0) {
-							return {
-								pages: [{ items: [newProjectWithPosition] }],
-								pageParams: [undefined],
-							};
-						}
-
-						const newPages = [...old.pages];
-						const lastPageIndex = newPages.length - 1;
-						const lastPage = newPages[lastPageIndex];
-
-						newPages[lastPageIndex] = {
-							...lastPage,
-							items: [...(lastPage.items || []), newProjectWithPosition],
-						};
-
-						return {
-							...old,
-							pages: newPages,
-						};
-					});
-				}
-
-				if (previousSpace) {
-					queryClient.setQueryData(spaceQueryKey, (old) => {
-						if (!old) return old;
-						return {
-							...old,
-							projects: [...(old.projects ?? []), optimisticProject],
-						};
-					});
-				}
-
-				return { previousProjects, previousSpace };
-			},
-			onError: (err, _variables, context) => {
-				if (context?.previousProjects) {
-					queryClient.setQueryData(
-						orpc.project.list.queryKey({ input: { limit: 20 } }),
-						context.previousProjects,
-					);
-				}
-				if (context?.previousSpace) {
-					queryClient.setQueryData(
-						orpc.space.byId.queryKey({
-							input: {
-								spaceId: spacePublicId,
-							},
-						}),
-						context.previousSpace,
-					);
-				}
-				toast.error(err.message || "Failed to create project");
-			},
-			onSuccess: () => {
+			onSuccess: (data) => {
 				queryClient.invalidateQueries({
 					queryKey: orpc.project.list.queryKey({ input: { limit: 20 } }),
 				});
 				queryClient.invalidateQueries({
-					queryKey: orpc.space.byId.queryKey({
+					queryKey: orpc.project.allBySpaceId.queryKey({
 						input: {
-							spaceId: spacePublicId,
+							spacePublicId,
 						},
 					}),
 				});
-				toast.success("Project created successfully");
-			},
-		}),
-	);
-}
-
-export function useDeleteProject() {
-	const queryClient = reactQuery.useQueryClient();
-	return reactQuery.useMutation(
-		orpc.project.delete.mutationOptions({
-			onMutate: async ({ projectPublicId: publicId }) => {
-				const queryKey = orpc.project.list.queryKey({
-					input: { limit: 20 },
+				toast.success("Project created successfully", {
+					description: data.name,
+					action: {
+						label: "Go to project",
+						onClick: () => {
+							navigate({
+								to: "/$slug/projects/$id",
+								params: {
+									slug: slug ?? "",
+									id: data.publicId,
+								},
+							});
+						},
+					},
 				});
-				await queryClient.cancelQueries({ queryKey });
-
-				const previousProjects = queryClient.getQueryData(queryKey);
-
-				if (previousProjects) {
-					queryClient.setQueryData(queryKey, (old: any) => {
-						if (!old || !old.pages) return old;
-						return {
-							...old,
-							pages: old.pages.map((page: any) => ({
-								...page,
-								items: page.items.filter(
-									(item: any) => item.publicId !== publicId,
-								),
-							})),
-						};
-					});
-				}
-
-				return { previousProjects };
 			},
-			onError: (err, _variables, context) => {
-				if (context?.previousProjects) {
-					queryClient.setQueryData(
-						orpc.project.list.queryKey({ input: { limit: 20 } }),
-						context.previousProjects,
-					);
-				}
-				toast.error(err.message || "Failed to delete project");
-			},
-			onSuccess: ({ deletedPublicId }) => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.project.list.queryKey({ input: { limit: 20 } }),
-				});
-				toast.success("Project deleted successfully");
+			onError: (err) => {
+				toast.error(err.message || "Failed to create project");
 			},
 		}),
 	);

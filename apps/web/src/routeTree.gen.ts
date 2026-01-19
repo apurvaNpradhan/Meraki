@@ -26,10 +26,19 @@ import { Route as authenicatedOnboardingWorkspaceRouteImport } from './routes/(a
 import { Route as authenicatedOnboardingCompleteRouteImport } from './routes/(authenicated)/onboarding/complete'
 import { Route as authenicatedSlugHomeRouteImport } from './routes/(authenicated)/$slug/home'
 import { Route as authenicatedSlugInboxIndexRouteImport } from './routes/(authenicated)/$slug/inbox/index'
-import { Route as authenicatedSlugSpacesIdRouteImport } from './routes/(authenicated)/$slug/spaces/$id'
-import { Route as authenicatedSlugProjectsIdRouteImport } from './routes/(authenicated)/$slug/projects/$id'
+import { Route as authenicatedSlugSpacesIdRouteRouteImport } from './routes/(authenicated)/$slug/spaces/$id/route'
+import { Route as authenicatedSlugProjectsIdRouteRouteImport } from './routes/(authenicated)/$slug/projects/$id/route'
+import { Route as authenicatedSlugSpacesIdIndexRouteImport } from './routes/(authenicated)/$slug/spaces/$id/index'
+import { Route as authenicatedSlugProjectsIdIndexRouteImport } from './routes/(authenicated)/$slug/projects/$id/index'
+import { Route as authenicatedSlugSpacesIdTasksRouteImport } from './routes/(authenicated)/$slug/spaces/$id/tasks'
+import { Route as authenicatedSlugSpacesIdProjectsRouteImport } from './routes/(authenicated)/$slug/spaces/$id/projects'
+import { Route as authenicatedSlugSpacesIdOverviewRouteImport } from './routes/(authenicated)/$slug/spaces/$id/overview'
 import { Route as authenicatedSlugSettingsWorkspacePeopleRouteImport } from './routes/(authenicated)/$slug/settings/workspace/people'
 import { Route as authenicatedSlugSettingsWorkspaceGeneralRouteImport } from './routes/(authenicated)/$slug/settings/workspace/general'
+import { Route as authenicatedSlugProjectsIdTasksRouteImport } from './routes/(authenicated)/$slug/projects/$id/tasks'
+import { Route as authenicatedSlugProjectsIdOverviewRouteImport } from './routes/(authenicated)/$slug/projects/$id/overview'
+import { Route as authenicatedSlugProjectsIdNotesRouteImport } from './routes/(authenicated)/$slug/projects/$id/notes'
+import { Route as authenicatedSlugProjectsIdCalendarRouteImport } from './routes/(authenicated)/$slug/projects/$id/calendar'
 import { Route as authenicatedSlugSettingsAccountProfileIndexRouteImport } from './routes/(authenicated)/$slug/settings/account/profile/index'
 import { Route as authenicatedSlugSettingsAccountPreferencesIndexRouteImport } from './routes/(authenicated)/$slug/settings/account/preferences/index'
 
@@ -121,17 +130,47 @@ const authenicatedSlugInboxIndexRoute =
     path: '/inbox/',
     getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
-const authenicatedSlugSpacesIdRoute =
-  authenicatedSlugSpacesIdRouteImport.update({
+const authenicatedSlugSpacesIdRouteRoute =
+  authenicatedSlugSpacesIdRouteRouteImport.update({
     id: '/spaces/$id',
     path: '/spaces/$id',
     getParentRoute: () => authenicatedSlugRouteRoute,
   } as any)
-const authenicatedSlugProjectsIdRoute =
-  authenicatedSlugProjectsIdRouteImport.update({
+const authenicatedSlugProjectsIdRouteRoute =
+  authenicatedSlugProjectsIdRouteRouteImport.update({
     id: '/projects/$id',
     path: '/projects/$id',
     getParentRoute: () => authenicatedSlugRouteRoute,
+  } as any)
+const authenicatedSlugSpacesIdIndexRoute =
+  authenicatedSlugSpacesIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => authenicatedSlugSpacesIdRouteRoute,
+  } as any)
+const authenicatedSlugProjectsIdIndexRoute =
+  authenicatedSlugProjectsIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => authenicatedSlugProjectsIdRouteRoute,
+  } as any)
+const authenicatedSlugSpacesIdTasksRoute =
+  authenicatedSlugSpacesIdTasksRouteImport.update({
+    id: '/tasks',
+    path: '/tasks',
+    getParentRoute: () => authenicatedSlugSpacesIdRouteRoute,
+  } as any)
+const authenicatedSlugSpacesIdProjectsRoute =
+  authenicatedSlugSpacesIdProjectsRouteImport.update({
+    id: '/projects',
+    path: '/projects',
+    getParentRoute: () => authenicatedSlugSpacesIdRouteRoute,
+  } as any)
+const authenicatedSlugSpacesIdOverviewRoute =
+  authenicatedSlugSpacesIdOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => authenicatedSlugSpacesIdRouteRoute,
   } as any)
 const authenicatedSlugSettingsWorkspacePeopleRoute =
   authenicatedSlugSettingsWorkspacePeopleRouteImport.update({
@@ -144,6 +183,30 @@ const authenicatedSlugSettingsWorkspaceGeneralRoute =
     id: '/settings/workspace/general',
     path: '/settings/workspace/general',
     getParentRoute: () => authenicatedSlugRouteRoute,
+  } as any)
+const authenicatedSlugProjectsIdTasksRoute =
+  authenicatedSlugProjectsIdTasksRouteImport.update({
+    id: '/tasks',
+    path: '/tasks',
+    getParentRoute: () => authenicatedSlugProjectsIdRouteRoute,
+  } as any)
+const authenicatedSlugProjectsIdOverviewRoute =
+  authenicatedSlugProjectsIdOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => authenicatedSlugProjectsIdRouteRoute,
+  } as any)
+const authenicatedSlugProjectsIdNotesRoute =
+  authenicatedSlugProjectsIdNotesRouteImport.update({
+    id: '/notes',
+    path: '/notes',
+    getParentRoute: () => authenicatedSlugProjectsIdRouteRoute,
+  } as any)
+const authenicatedSlugProjectsIdCalendarRoute =
+  authenicatedSlugProjectsIdCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => authenicatedSlugProjectsIdRouteRoute,
   } as any)
 const authenicatedSlugSettingsAccountProfileIndexRoute =
   authenicatedSlugSettingsAccountProfileIndexRouteImport.update({
@@ -173,11 +236,20 @@ export interface FileRoutesByFullPath {
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
   '/onboarding/': typeof authenicatedOnboardingIndexRoute
-  '/$slug/projects/$id': typeof authenicatedSlugProjectsIdRoute
-  '/$slug/spaces/$id': typeof authenicatedSlugSpacesIdRoute
+  '/$slug/projects/$id': typeof authenicatedSlugProjectsIdRouteRouteWithChildren
+  '/$slug/spaces/$id': typeof authenicatedSlugSpacesIdRouteRouteWithChildren
   '/$slug/inbox': typeof authenicatedSlugInboxIndexRoute
+  '/$slug/projects/$id/calendar': typeof authenicatedSlugProjectsIdCalendarRoute
+  '/$slug/projects/$id/notes': typeof authenicatedSlugProjectsIdNotesRoute
+  '/$slug/projects/$id/overview': typeof authenicatedSlugProjectsIdOverviewRoute
+  '/$slug/projects/$id/tasks': typeof authenicatedSlugProjectsIdTasksRoute
   '/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   '/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  '/$slug/spaces/$id/overview': typeof authenicatedSlugSpacesIdOverviewRoute
+  '/$slug/spaces/$id/projects': typeof authenicatedSlugSpacesIdProjectsRoute
+  '/$slug/spaces/$id/tasks': typeof authenicatedSlugSpacesIdTasksRoute
+  '/$slug/projects/$id/': typeof authenicatedSlugProjectsIdIndexRoute
+  '/$slug/spaces/$id/': typeof authenicatedSlugSpacesIdIndexRoute
   '/$slug/settings/account/preferences': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
   '/$slug/settings/account/profile': typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
@@ -195,11 +267,18 @@ export interface FileRoutesByTo {
   '/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
   '/onboarding': typeof authenicatedOnboardingIndexRoute
-  '/$slug/projects/$id': typeof authenicatedSlugProjectsIdRoute
-  '/$slug/spaces/$id': typeof authenicatedSlugSpacesIdRoute
   '/$slug/inbox': typeof authenicatedSlugInboxIndexRoute
+  '/$slug/projects/$id/calendar': typeof authenicatedSlugProjectsIdCalendarRoute
+  '/$slug/projects/$id/notes': typeof authenicatedSlugProjectsIdNotesRoute
+  '/$slug/projects/$id/overview': typeof authenicatedSlugProjectsIdOverviewRoute
+  '/$slug/projects/$id/tasks': typeof authenicatedSlugProjectsIdTasksRoute
   '/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   '/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  '/$slug/spaces/$id/overview': typeof authenicatedSlugSpacesIdOverviewRoute
+  '/$slug/spaces/$id/projects': typeof authenicatedSlugSpacesIdProjectsRoute
+  '/$slug/spaces/$id/tasks': typeof authenicatedSlugSpacesIdTasksRoute
+  '/$slug/projects/$id': typeof authenicatedSlugProjectsIdIndexRoute
+  '/$slug/spaces/$id': typeof authenicatedSlugSpacesIdIndexRoute
   '/$slug/settings/account/preferences': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
   '/$slug/settings/account/profile': typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
@@ -221,11 +300,20 @@ export interface FileRoutesById {
   '/(authenicated)/onboarding/complete': typeof authenicatedOnboardingCompleteRoute
   '/(authenicated)/onboarding/workspace': typeof authenicatedOnboardingWorkspaceRoute
   '/(authenicated)/onboarding/': typeof authenicatedOnboardingIndexRoute
-  '/(authenicated)/$slug/projects/$id': typeof authenicatedSlugProjectsIdRoute
-  '/(authenicated)/$slug/spaces/$id': typeof authenicatedSlugSpacesIdRoute
+  '/(authenicated)/$slug/projects/$id': typeof authenicatedSlugProjectsIdRouteRouteWithChildren
+  '/(authenicated)/$slug/spaces/$id': typeof authenicatedSlugSpacesIdRouteRouteWithChildren
   '/(authenicated)/$slug/inbox/': typeof authenicatedSlugInboxIndexRoute
+  '/(authenicated)/$slug/projects/$id/calendar': typeof authenicatedSlugProjectsIdCalendarRoute
+  '/(authenicated)/$slug/projects/$id/notes': typeof authenicatedSlugProjectsIdNotesRoute
+  '/(authenicated)/$slug/projects/$id/overview': typeof authenicatedSlugProjectsIdOverviewRoute
+  '/(authenicated)/$slug/projects/$id/tasks': typeof authenicatedSlugProjectsIdTasksRoute
   '/(authenicated)/$slug/settings/workspace/general': typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   '/(authenicated)/$slug/settings/workspace/people': typeof authenicatedSlugSettingsWorkspacePeopleRoute
+  '/(authenicated)/$slug/spaces/$id/overview': typeof authenicatedSlugSpacesIdOverviewRoute
+  '/(authenicated)/$slug/spaces/$id/projects': typeof authenicatedSlugSpacesIdProjectsRoute
+  '/(authenicated)/$slug/spaces/$id/tasks': typeof authenicatedSlugSpacesIdTasksRoute
+  '/(authenicated)/$slug/projects/$id/': typeof authenicatedSlugProjectsIdIndexRoute
+  '/(authenicated)/$slug/spaces/$id/': typeof authenicatedSlugSpacesIdIndexRoute
   '/(authenicated)/$slug/settings/account/preferences/': typeof authenicatedSlugSettingsAccountPreferencesIndexRoute
   '/(authenicated)/$slug/settings/account/profile/': typeof authenicatedSlugSettingsAccountProfileIndexRoute
 }
@@ -249,8 +337,17 @@ export interface FileRouteTypes {
     | '/$slug/projects/$id'
     | '/$slug/spaces/$id'
     | '/$slug/inbox'
+    | '/$slug/projects/$id/calendar'
+    | '/$slug/projects/$id/notes'
+    | '/$slug/projects/$id/overview'
+    | '/$slug/projects/$id/tasks'
     | '/$slug/settings/workspace/general'
     | '/$slug/settings/workspace/people'
+    | '/$slug/spaces/$id/overview'
+    | '/$slug/spaces/$id/projects'
+    | '/$slug/spaces/$id/tasks'
+    | '/$slug/projects/$id/'
+    | '/$slug/spaces/$id/'
     | '/$slug/settings/account/preferences'
     | '/$slug/settings/account/profile'
   fileRoutesByTo: FileRoutesByTo
@@ -268,11 +365,18 @@ export interface FileRouteTypes {
     | '/onboarding/complete'
     | '/onboarding/workspace'
     | '/onboarding'
-    | '/$slug/projects/$id'
-    | '/$slug/spaces/$id'
     | '/$slug/inbox'
+    | '/$slug/projects/$id/calendar'
+    | '/$slug/projects/$id/notes'
+    | '/$slug/projects/$id/overview'
+    | '/$slug/projects/$id/tasks'
     | '/$slug/settings/workspace/general'
     | '/$slug/settings/workspace/people'
+    | '/$slug/spaces/$id/overview'
+    | '/$slug/spaces/$id/projects'
+    | '/$slug/spaces/$id/tasks'
+    | '/$slug/projects/$id'
+    | '/$slug/spaces/$id'
     | '/$slug/settings/account/preferences'
     | '/$slug/settings/account/profile'
   id:
@@ -296,8 +400,17 @@ export interface FileRouteTypes {
     | '/(authenicated)/$slug/projects/$id'
     | '/(authenicated)/$slug/spaces/$id'
     | '/(authenicated)/$slug/inbox/'
+    | '/(authenicated)/$slug/projects/$id/calendar'
+    | '/(authenicated)/$slug/projects/$id/notes'
+    | '/(authenicated)/$slug/projects/$id/overview'
+    | '/(authenicated)/$slug/projects/$id/tasks'
     | '/(authenicated)/$slug/settings/workspace/general'
     | '/(authenicated)/$slug/settings/workspace/people'
+    | '/(authenicated)/$slug/spaces/$id/overview'
+    | '/(authenicated)/$slug/spaces/$id/projects'
+    | '/(authenicated)/$slug/spaces/$id/tasks'
+    | '/(authenicated)/$slug/projects/$id/'
+    | '/(authenicated)/$slug/spaces/$id/'
     | '/(authenicated)/$slug/settings/account/preferences/'
     | '/(authenicated)/$slug/settings/account/profile/'
   fileRoutesById: FileRoutesById
@@ -436,15 +549,50 @@ declare module '@tanstack/react-router' {
       id: '/(authenicated)/$slug/spaces/$id'
       path: '/spaces/$id'
       fullPath: '/$slug/spaces/$id'
-      preLoaderRoute: typeof authenicatedSlugSpacesIdRouteImport
+      preLoaderRoute: typeof authenicatedSlugSpacesIdRouteRouteImport
       parentRoute: typeof authenicatedSlugRouteRoute
     }
     '/(authenicated)/$slug/projects/$id': {
       id: '/(authenicated)/$slug/projects/$id'
       path: '/projects/$id'
       fullPath: '/$slug/projects/$id'
-      preLoaderRoute: typeof authenicatedSlugProjectsIdRouteImport
+      preLoaderRoute: typeof authenicatedSlugProjectsIdRouteRouteImport
       parentRoute: typeof authenicatedSlugRouteRoute
+    }
+    '/(authenicated)/$slug/spaces/$id/': {
+      id: '/(authenicated)/$slug/spaces/$id/'
+      path: '/'
+      fullPath: '/$slug/spaces/$id/'
+      preLoaderRoute: typeof authenicatedSlugSpacesIdIndexRouteImport
+      parentRoute: typeof authenicatedSlugSpacesIdRouteRoute
+    }
+    '/(authenicated)/$slug/projects/$id/': {
+      id: '/(authenicated)/$slug/projects/$id/'
+      path: '/'
+      fullPath: '/$slug/projects/$id/'
+      preLoaderRoute: typeof authenicatedSlugProjectsIdIndexRouteImport
+      parentRoute: typeof authenicatedSlugProjectsIdRouteRoute
+    }
+    '/(authenicated)/$slug/spaces/$id/tasks': {
+      id: '/(authenicated)/$slug/spaces/$id/tasks'
+      path: '/tasks'
+      fullPath: '/$slug/spaces/$id/tasks'
+      preLoaderRoute: typeof authenicatedSlugSpacesIdTasksRouteImport
+      parentRoute: typeof authenicatedSlugSpacesIdRouteRoute
+    }
+    '/(authenicated)/$slug/spaces/$id/projects': {
+      id: '/(authenicated)/$slug/spaces/$id/projects'
+      path: '/projects'
+      fullPath: '/$slug/spaces/$id/projects'
+      preLoaderRoute: typeof authenicatedSlugSpacesIdProjectsRouteImport
+      parentRoute: typeof authenicatedSlugSpacesIdRouteRoute
+    }
+    '/(authenicated)/$slug/spaces/$id/overview': {
+      id: '/(authenicated)/$slug/spaces/$id/overview'
+      path: '/overview'
+      fullPath: '/$slug/spaces/$id/overview'
+      preLoaderRoute: typeof authenicatedSlugSpacesIdOverviewRouteImport
+      parentRoute: typeof authenicatedSlugSpacesIdRouteRoute
     }
     '/(authenicated)/$slug/settings/workspace/people': {
       id: '/(authenicated)/$slug/settings/workspace/people'
@@ -459,6 +607,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/$slug/settings/workspace/general'
       preLoaderRoute: typeof authenicatedSlugSettingsWorkspaceGeneralRouteImport
       parentRoute: typeof authenicatedSlugRouteRoute
+    }
+    '/(authenicated)/$slug/projects/$id/tasks': {
+      id: '/(authenicated)/$slug/projects/$id/tasks'
+      path: '/tasks'
+      fullPath: '/$slug/projects/$id/tasks'
+      preLoaderRoute: typeof authenicatedSlugProjectsIdTasksRouteImport
+      parentRoute: typeof authenicatedSlugProjectsIdRouteRoute
+    }
+    '/(authenicated)/$slug/projects/$id/overview': {
+      id: '/(authenicated)/$slug/projects/$id/overview'
+      path: '/overview'
+      fullPath: '/$slug/projects/$id/overview'
+      preLoaderRoute: typeof authenicatedSlugProjectsIdOverviewRouteImport
+      parentRoute: typeof authenicatedSlugProjectsIdRouteRoute
+    }
+    '/(authenicated)/$slug/projects/$id/notes': {
+      id: '/(authenicated)/$slug/projects/$id/notes'
+      path: '/notes'
+      fullPath: '/$slug/projects/$id/notes'
+      preLoaderRoute: typeof authenicatedSlugProjectsIdNotesRouteImport
+      parentRoute: typeof authenicatedSlugProjectsIdRouteRoute
+    }
+    '/(authenicated)/$slug/projects/$id/calendar': {
+      id: '/(authenicated)/$slug/projects/$id/calendar'
+      path: '/calendar'
+      fullPath: '/$slug/projects/$id/calendar'
+      preLoaderRoute: typeof authenicatedSlugProjectsIdCalendarRouteImport
+      parentRoute: typeof authenicatedSlugProjectsIdRouteRoute
     }
     '/(authenicated)/$slug/settings/account/profile/': {
       id: '/(authenicated)/$slug/settings/account/profile/'
@@ -477,10 +653,56 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface authenicatedSlugProjectsIdRouteRouteChildren {
+  authenicatedSlugProjectsIdCalendarRoute: typeof authenicatedSlugProjectsIdCalendarRoute
+  authenicatedSlugProjectsIdNotesRoute: typeof authenicatedSlugProjectsIdNotesRoute
+  authenicatedSlugProjectsIdOverviewRoute: typeof authenicatedSlugProjectsIdOverviewRoute
+  authenicatedSlugProjectsIdTasksRoute: typeof authenicatedSlugProjectsIdTasksRoute
+  authenicatedSlugProjectsIdIndexRoute: typeof authenicatedSlugProjectsIdIndexRoute
+}
+
+const authenicatedSlugProjectsIdRouteRouteChildren: authenicatedSlugProjectsIdRouteRouteChildren =
+  {
+    authenicatedSlugProjectsIdCalendarRoute:
+      authenicatedSlugProjectsIdCalendarRoute,
+    authenicatedSlugProjectsIdNotesRoute: authenicatedSlugProjectsIdNotesRoute,
+    authenicatedSlugProjectsIdOverviewRoute:
+      authenicatedSlugProjectsIdOverviewRoute,
+    authenicatedSlugProjectsIdTasksRoute: authenicatedSlugProjectsIdTasksRoute,
+    authenicatedSlugProjectsIdIndexRoute: authenicatedSlugProjectsIdIndexRoute,
+  }
+
+const authenicatedSlugProjectsIdRouteRouteWithChildren =
+  authenicatedSlugProjectsIdRouteRoute._addFileChildren(
+    authenicatedSlugProjectsIdRouteRouteChildren,
+  )
+
+interface authenicatedSlugSpacesIdRouteRouteChildren {
+  authenicatedSlugSpacesIdOverviewRoute: typeof authenicatedSlugSpacesIdOverviewRoute
+  authenicatedSlugSpacesIdProjectsRoute: typeof authenicatedSlugSpacesIdProjectsRoute
+  authenicatedSlugSpacesIdTasksRoute: typeof authenicatedSlugSpacesIdTasksRoute
+  authenicatedSlugSpacesIdIndexRoute: typeof authenicatedSlugSpacesIdIndexRoute
+}
+
+const authenicatedSlugSpacesIdRouteRouteChildren: authenicatedSlugSpacesIdRouteRouteChildren =
+  {
+    authenicatedSlugSpacesIdOverviewRoute:
+      authenicatedSlugSpacesIdOverviewRoute,
+    authenicatedSlugSpacesIdProjectsRoute:
+      authenicatedSlugSpacesIdProjectsRoute,
+    authenicatedSlugSpacesIdTasksRoute: authenicatedSlugSpacesIdTasksRoute,
+    authenicatedSlugSpacesIdIndexRoute: authenicatedSlugSpacesIdIndexRoute,
+  }
+
+const authenicatedSlugSpacesIdRouteRouteWithChildren =
+  authenicatedSlugSpacesIdRouteRoute._addFileChildren(
+    authenicatedSlugSpacesIdRouteRouteChildren,
+  )
+
 interface authenicatedSlugRouteRouteChildren {
   authenicatedSlugHomeRoute: typeof authenicatedSlugHomeRoute
-  authenicatedSlugProjectsIdRoute: typeof authenicatedSlugProjectsIdRoute
-  authenicatedSlugSpacesIdRoute: typeof authenicatedSlugSpacesIdRoute
+  authenicatedSlugProjectsIdRouteRoute: typeof authenicatedSlugProjectsIdRouteRouteWithChildren
+  authenicatedSlugSpacesIdRouteRoute: typeof authenicatedSlugSpacesIdRouteRouteWithChildren
   authenicatedSlugInboxIndexRoute: typeof authenicatedSlugInboxIndexRoute
   authenicatedSlugSettingsWorkspaceGeneralRoute: typeof authenicatedSlugSettingsWorkspaceGeneralRoute
   authenicatedSlugSettingsWorkspacePeopleRoute: typeof authenicatedSlugSettingsWorkspacePeopleRoute
@@ -490,8 +712,10 @@ interface authenicatedSlugRouteRouteChildren {
 
 const authenicatedSlugRouteRouteChildren: authenicatedSlugRouteRouteChildren = {
   authenicatedSlugHomeRoute: authenicatedSlugHomeRoute,
-  authenicatedSlugProjectsIdRoute: authenicatedSlugProjectsIdRoute,
-  authenicatedSlugSpacesIdRoute: authenicatedSlugSpacesIdRoute,
+  authenicatedSlugProjectsIdRouteRoute:
+    authenicatedSlugProjectsIdRouteRouteWithChildren,
+  authenicatedSlugSpacesIdRouteRoute:
+    authenicatedSlugSpacesIdRouteRouteWithChildren,
   authenicatedSlugInboxIndexRoute: authenicatedSlugInboxIndexRoute,
   authenicatedSlugSettingsWorkspaceGeneralRoute:
     authenicatedSlugSettingsWorkspaceGeneralRoute,

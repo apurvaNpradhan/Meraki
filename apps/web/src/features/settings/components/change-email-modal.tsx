@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { env } from "@meraki/env/web";
 import { IconLoader2, IconMail } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -24,7 +24,7 @@ const emailSchema = z.object({
 type EmailFormValues = z.infer<typeof emailSchema>;
 
 export function ChangeEmailModal() {
-	const { close } = useModal();
+	const { close, setDirty } = useModal();
 	const [isLoading, setIsLoading] = useState(false);
 	const { data: session } = useSuspenseQuery(sessionQueryOptions);
 	const currentEmail = session?.data?.user?.email || "";
@@ -35,6 +35,10 @@ export function ChangeEmailModal() {
 			newEmail: "",
 		},
 	});
+
+	useEffect(() => {
+		setDirty(form.formState.isDirty);
+	}, [form.formState.isDirty, setDirty]);
 
 	async function onSubmit(values: EmailFormValues) {
 		if (values.newEmail === currentEmail) {

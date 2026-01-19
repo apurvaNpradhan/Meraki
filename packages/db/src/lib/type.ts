@@ -1,3 +1,6 @@
+import type { db } from "..";
+
+export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export type SerializedLexicalNode = {
 	type: string;
 	version: number;
